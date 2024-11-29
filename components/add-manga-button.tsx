@@ -23,6 +23,11 @@ export function AddMangaButton() {
 
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault()
+    // Verifique se a sessão e o usuário estão disponíveis
+        if (!session || !session.user) {
+            toast.error("Sessão não encontrada. Por favor, faça login.");
+            return;
+        }
           // Asserção para garantir que o target seja um formulário HTML
          const form = event.target as HTMLFormElement;
         try {
@@ -35,7 +40,7 @@ export function AddMangaButton() {
                 chapter: (form.elements.namedItem('chapter') as HTMLInputElement)?.value,
                 website: (form.elements.namedItem('website') as HTMLInputElement)?.value,
                 linkToWebsite: (form.elements.namedItem('linkToWebsite') as HTMLInputElement)?.value,
-                userId: session.user!.id,
+                userId: session.user.id,
               }),
             });
             mutate(`/api/manga?userId=${session.user!.id}`);

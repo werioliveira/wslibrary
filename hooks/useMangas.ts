@@ -10,7 +10,7 @@ const fetcher = async (url: string) => {
 };
 
 // Hook personalizado para buscar mangás
-export function useMangas(userId: string | null) {
+export function useMangas(userId: string | undefined) {
   const { data, error, isLoading } = useSWR(
     userId ? `/api/manga?userId=${userId}` : null, // Somente busca se userId existir
     fetcher

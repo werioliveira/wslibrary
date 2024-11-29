@@ -34,8 +34,12 @@ export default function MangaPage({ params }: { params: Promise<{ id: string }> 
         }
         const data = await response.json();
         setManga(data);
-      } catch (err) {
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+            setError(err.message);
+          } else {
+            setError("An unknown error occurred");
+          }
       } finally {
         setIsLoading(false);
       }
