@@ -20,7 +20,7 @@ export function MangaContainer() {
     const { mangas, isLoading, isError } = useMangas(session?.user?.id);
     if (isLoading) return <p>Carregando...</p>;
     if (isError) return <p>Erro ao carregar os mangás.</p>;
-    let allManga = mangas.mangas
+    const allManga = mangas.mangas
     const totalPages = Math.ceil(allManga.length / ITEMS_PER_PAGE)
     const mangaList = allManga.slice(
       (currentPage - 1) * ITEMS_PER_PAGE,

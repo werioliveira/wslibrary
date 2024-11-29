@@ -42,7 +42,7 @@ export function AddMangaButton() {
             if (!res.ok) toast.error("Erro ao adicionar manga!")
             toast.success("Manga adicionada com sucesso!")
           } catch (e) {
-            toast.error("Erro ao adicionar manga!")
+            toast.error("Erro ao adicionar manga!"+e)
           }
         setOpen(false)
     }

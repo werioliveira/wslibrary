@@ -16,6 +16,7 @@ interface Manga {
   linkToWebsite: string;
 }
 
+
 export default function MangaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params); // Resolva a Promise usando o hook `use`
   
@@ -33,7 +34,7 @@ export default function MangaPage({ params }: { params: Promise<{ id: string }> 
         }
         const data = await response.json();
         setManga(data);
-      } catch (err: any) {
+      } catch (err) {
         setError(err.message);
       } finally {
         setIsLoading(false);
@@ -72,7 +73,7 @@ export default function MangaPage({ params }: { params: Promise<{ id: string }> 
       toast.success("Chapter updated successfully!");
 
     } catch (error) {
-        toast.error("Error updating chapter!");
+        toast.error("Error updating chapter!" + error);
     } finally {
       setIsUpdating(false);
 
@@ -88,8 +89,6 @@ export default function MangaPage({ params }: { params: Promise<{ id: string }> 
         if (!response.ok) {
           toast.error("Failed to delete manga");
         }
-    
-        const data = await response.json();
         toast.success("Manga deleted successfully!");
         route.push("/");
       } catch (error) {

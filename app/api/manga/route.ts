@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: NextRequest) {
     try {
       const { name, image, chapter, website, userId, linkToWebsite } = await req.json();
-      let data = {
+      const data = {
         name: name,
         image: image,
         chapter: parseInt(chapter),
@@ -16,7 +16,6 @@ export async function POST(req: NextRequest) {
       // Cria novo manga no MongoDB com Prisma
       const newManga = await db.manga.create({
         data
-        
       });
   
       return NextResponse.json({ manga: newManga }, { status: 201 });
@@ -34,6 +33,6 @@ export async function GET(req: NextRequest) {
         const mangas = await db.manga.findMany({where: {userId: userId}});
         return NextResponse.json({ mangas }, { status: 200 });
     }catch(error){
-        return NextResponse.json({ message: 'Erro ao buscar mangas' }, { status: 500 });
+        return NextResponse.json({ message: 'Erro ao buscar mangas'+error }, { status: 500 });
     }
 }

@@ -15,8 +15,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
   
       return NextResponse.json(manga);
     } catch (error) {
-      console.error("Error fetching manga:", error);
-      return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+      return NextResponse.json({ error: "Internal Server Error"+ error }, { status: 500 });
     }
   }
   export async function PUT(request: Request, { params }: { params: { id: string } }) {
@@ -31,8 +30,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
   
       return NextResponse.json(updatedManga);
     } catch (error) {
-      console.error("Error updating manga:", error);
-      return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+
+      return NextResponse.json({ error: "Internal Server Error"+ error }, { status: 500 });
     }
   } 
   
@@ -52,10 +51,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
         message: "Manga deleted successfully",
         deletedManga,
       });
-    } catch (error: any) {
-      console.error("Error deleting manga:", error);
+    } catch (error) {
       return NextResponse.json(
-        { error: "Failed to delete manga" },
+        { error: "Failed to delete manga"+ error },
         { status: 500 }
       );
     }

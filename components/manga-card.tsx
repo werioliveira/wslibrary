@@ -1,6 +1,4 @@
-import Image from 'next/image'
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import Link from 'next/link'
 
 interface MangaCardProps {
@@ -17,9 +15,7 @@ export function MangaCard({
   name, 
   image, 
   chapter, 
-  lastUpdate,
   website,
-  linkToWebsite,
   id
 }: MangaCardProps) {
   return (
