@@ -9,6 +9,7 @@ export const { handlers: { GET, POST }, signIn, signOut, auth } = NextAuth({
   session: {
     strategy: 'jwt',  // Usando JWT para a sessão
   },
+  secret: process.env.AUTH_SECRET,
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
