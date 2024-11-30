@@ -138,6 +138,8 @@ export function AddMangaButton() {
               <Label htmlFor="option-one">Pretendo Ler</Label>
               <RadioGroupItem value="Lendo" id="option-two" className="bg-white text-black hover:bg-gray-400 border-white"/>
               <Label htmlFor="option-two">Lendo</Label>
+              <RadioGroupItem value="Dropado" id="option-tree" className="bg-white text-black hover:bg-gray-400 border-white"/>
+              <Label htmlFor="option-tree">Dropado</Label>
             </div>
 
           </RadioGroup>
