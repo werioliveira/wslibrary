@@ -36,7 +36,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const { id } = await params;
-    const { chapter, name, image, linkToWebsite } = await request.json();
+    const { chapter, name, image, linkToWebsite,status } = await request.json();
 
   
     try {
@@ -55,7 +55,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   
       const updatedManga = await db.manga.update({
         where: { id },
-        data: { name, image, linkToWebsite, chapter },
+        data: { name, image, linkToWebsite, chapter, status },
       });
   
       return NextResponse.json(updatedManga);

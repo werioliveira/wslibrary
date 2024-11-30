@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { useSession } from "next-auth/react";
 import { mutate } from "swr";
 import { toast, Toaster } from "sonner";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
 export function AddMangaButton() {
   const [open, setOpen] = useState(false);
@@ -43,6 +44,9 @@ export function AddMangaButton() {
             ?.value,
           linkToWebsite: (
             form.elements.namedItem("linkToWebsite") as HTMLInputElement
+          )?.value,
+          status: (
+            form.elements.namedItem("status") as HTMLInputElement
           )?.value,
           userId: session.user.id,
         }),
@@ -126,7 +130,19 @@ export function AddMangaButton() {
               placeholder="Website URL"
             />
           </div>
-          <Button type="submit" className="ml-auto">
+          <div className="grid grid-cols-1 items-center gap-2 px-3">
+
+          <RadioGroup defaultValue="option-one ">
+            <div className="flex items-center justify-center space-x-2">
+              <RadioGroupItem value="PretendoLer" id="option-one" className="bg-white text-black hover:bg-gray-400 border-white" />
+              <Label htmlFor="option-one">Pretendo Ler</Label>
+              <RadioGroupItem value="Lendo" id="option-two" className="bg-white text-black hover:bg-gray-400 border-white"/>
+              <Label htmlFor="option-two">Lendo</Label>
+            </div>
+
+          </RadioGroup>
+          </div>
+          <Button type="submit" className="ml-auto bg-white text-black hover:bg-gray-400" >
             Add Manga
           </Button>
         </form>

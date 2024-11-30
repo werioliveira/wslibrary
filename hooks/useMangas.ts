@@ -13,10 +13,11 @@ const fetcher = async (url: string) => {
 export function useMangas(
   userId: string | undefined,
   page: number,
-  limit: number
+  limit: number,
+  status?: string
 ) {
   const { data, error, isLoading } = useSWR(
-    userId ? `/api/manga?userId=${userId}&page=${page}&limit=${limit}` : null, // Inclui paginação na URL
+    userId ? `/api/manga?userId=${userId}&page=${page}&limit=${limit}&status=${status}` : null, // Inclui paginação na URL
     fetcher
   );
   return {

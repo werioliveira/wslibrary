@@ -29,7 +29,10 @@ model User {
   updatedAt DateTime @updatedAt
   Manga     Manga[]
 }
-
+enum MangaStatus {
+  Lendo
+  PretendoLer
+}
 model Manga {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String
@@ -37,6 +40,7 @@ model Manga {
   chapter   Int
   website   String
   linkToWebsite String
+  status    MangaStatus? @default(Lendo)
   userId    String   @db.ObjectId
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

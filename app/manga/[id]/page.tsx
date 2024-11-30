@@ -13,6 +13,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Modal } from "@/components/Modal";
 import MangaPageSkeleton from "@/components/manga-page-skeleton";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 interface Manga {
   id: string;
@@ -20,6 +22,7 @@ interface Manga {
   image: string;
   chapter: number;
   linkToWebsite: string;
+  status: string;
   website: string;
 }
 
@@ -61,6 +64,7 @@ export default function MangaPage({
     fetchManga();
   }, [id]);
   const handleEdit = () => {
+    
     setEditData(manga); // Preenche o formulário com os dados atuais
     setIsEditing(true);
   };
@@ -304,6 +308,34 @@ export default function MangaPage({
                 className="w-full bg-zinc-800 text-white p-2 rounded"
               />
             </div>
+
+            <div>
+      <label className="text-zinc-400">Status</label>
+      <div className="flex gap-2 mt-2">
+        <button
+          type="button"
+          onClick={() => setEditData({ ...editData!, status: "Lendo" })}
+          className={`px-4 py-2 rounded ${
+            editData?.status === "Lendo"
+              ? "bg-blue-600 text-white"
+              : "bg-zinc-800 text-zinc-400"
+          }`}
+        >
+          Lendo
+        </button>
+        <button
+          type="button"
+          onClick={() => setEditData({ ...editData!, status: "PretendoLer" })}
+          className={`px-4 py-2 rounded ${
+            editData?.status === "PretendoLer"
+              ? "bg-blue-600 text-white"
+              : "bg-zinc-800 text-zinc-400"
+          }`}
+        >
+          Pretendo Ler
+        </button>
+      </div>
+    </div>
             <Button
               onClick={handleSave}
               className="w-full bg-blue-600 hover:bg-blue-500"

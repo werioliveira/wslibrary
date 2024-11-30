@@ -14,14 +14,15 @@ interface MangaCardProps {
   linkToWebsite: string;
   id: string;
 }
-export function MangaContainer() {
+export function MangaContainer({status}: {status: string}) {
   const { data: session } = useSession();
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
   const { mangas, pagination, isLoading, isError } = useMangas(
     session?.user?.id,
     currentPage,
-    ITEMS_PER_PAGE
+    ITEMS_PER_PAGE,
+    status
   );
   if (isLoading)
     return (
