@@ -66,10 +66,12 @@ export default function MangaPage({
     setEditData(manga); // Preenche o formulário com os dados atuais
     setIsEditing(true);
   };
-  const handleSave = async () => {
+  const handleSave = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     if (!editData) return;
 
     try {
+
       const response = await fetch(`/api/manga/${editData.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -250,7 +252,7 @@ export default function MangaPage({
         </Card>
         <Modal isOpen={isEditing} onClose={() => setIsEditing(false)}>
           <h2 className="text-xl font-bold text-white mb-4">Edit Manga</h2>
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={handleSave}>
             <div>
               <label className="text-zinc-400">Name</label>
               <input
@@ -346,7 +348,7 @@ export default function MangaPage({
       </div>
     </div>
             <Button
-              onClick={handleSave}
+              type="submit"
               className="w-full bg-blue-600 hover:bg-blue-500"
             >
               Save Changes
