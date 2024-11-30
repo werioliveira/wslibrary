@@ -25,12 +25,13 @@ export function MangaCard({
           <img
             src={image}
             alt={name}
-            className="absolute inset-0 w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
-        <CardContent className="p-3 bg-zinc-950 flex-grow">
-          <h2 className="font-medium text-sm text-white leading-tight line-clamp-2 mb-1">
+        <CardContent className="p-3 bg-zinc-950 flex-grow flex flex-col justify-between">
+          {/* Título truncado após 2 linhas */}
+          <h2 className="font-medium text-sm text-white leading-tight mb-1 overflow-hidden line-clamp-1">
             {name}
           </h2>
           <div className="flex flex-col gap-0.5">
