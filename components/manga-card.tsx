@@ -1,5 +1,11 @@
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip" // Supondo que você tenha um componente de Tooltip
 
 interface MangaCardProps {
   name: string;
@@ -30,11 +36,22 @@ export function MangaCard({
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
         <CardContent className="p-3 bg-zinc-950 flex-grow flex flex-col justify-between">
-          {/* Título truncado após 2 linhas */}
-          <h2 className="font-medium text-sm text-white leading-tight mb-1 overflow-hidden line-clamp-1">
-            {name}
-          </h2>
+          {/* Tooltip para mostrar o texto completo */}
+
+          
           <div className="flex flex-col gap-0.5">
+          <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>            
+              <h2 className="font-medium text-sm text-white leading-tight mb-1 overflow-hidden line-clamp-1 text-start">
+              {name}
+            </h2>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{name}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
             <span className="text-xs text-zinc-400">Cap. {chapter}</span>
             <span className="text-xs text-zinc-500 truncate">{website}</span>
           </div>
