@@ -21,6 +21,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 export function AddMangaButton() {
   const [open, setOpen] = useState(false);
   const { data: session } = useSession();
+  const [status, setStatus] = useState<string>("PretendoLer");
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -31,6 +32,7 @@ export function AddMangaButton() {
     }
     // Asserção para garantir que o target seja um formulário HTML
     const form = event.target as HTMLFormElement;
+    console.log(form.elements)
     try {
       const res = await fetch("/api/manga", {
         method: "POST",
@@ -45,9 +47,7 @@ export function AddMangaButton() {
           linkToWebsite: (
             form.elements.namedItem("linkToWebsite") as HTMLInputElement
           )?.value,
-          status: (
-            form.elements.namedItem("status") as HTMLInputElement
-          )?.value,
+          status: status,
           userId: session.user.id,
         }),
       });
@@ -132,7 +132,7 @@ export function AddMangaButton() {
           </div>
           <div className="grid grid-cols-1 items-center gap-2 px-3">
 
-          <RadioGroup defaultValue="option-one ">
+          <RadioGroup defaultValue="option-one" onValueChange={(value) => setStatus(value)}>
             <div className="flex items-center justify-center space-x-2">
               <RadioGroupItem value="PretendoLer" id="option-one" className="bg-white text-black hover:bg-gray-400 border-white" />
               <Label htmlFor="option-one">Pretendo Ler</Label>

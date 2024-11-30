@@ -1,7 +1,7 @@
 import { useSession } from "next-auth/react";
 import { MangaCard } from "./manga-card";
 import { useMangas } from "@/hooks/useMangas";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pagination } from "./pagination";
 import { MangaCardSkeleton } from "./manga-card-skeleton";
 
@@ -14,7 +14,8 @@ interface MangaCardProps {
   linkToWebsite: string;
   id: string;
 }
-export function MangaContainer({status}: {status: string}) {
+export function MangaContainer({ status, page }: { status: string; page: number }) {
+
   const { data: session } = useSession();
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
@@ -24,6 +25,9 @@ export function MangaContainer({status}: {status: string}) {
     ITEMS_PER_PAGE,
     status
   );
+  useEffect(() => {
+    setCurrentPage(page);
+  }, [status]);
   if (isLoading)
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">

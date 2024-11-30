@@ -10,6 +10,7 @@ import { useState } from "react";
 export default function Home() {
   const { data: session } = useSession();
   const [status, setStatus] = useState("Lendo");
+  const [page, setPage] = useState(1);
   // Funções para alterar o status
   const handleStatusChange = (newStatus: string) => {
     setStatus(newStatus);
@@ -42,7 +43,7 @@ export default function Home() {
               Dropado
             </Button>
           </div>
-          <MangaContainer status={status} />
+          <MangaContainer status={status} page={page}/>
           <AddMangaButton />
         </>
       ) : (
