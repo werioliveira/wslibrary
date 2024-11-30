@@ -12,6 +12,7 @@ import { Toaster, toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Modal } from "@/components/Modal";
+import MangaPageSkeleton from "@/components/manga-page-skeleton";
 
 interface Manga {
   id: string;
@@ -134,7 +135,9 @@ export default function MangaPage({
     }
   };
   if (isLoading) {
-    return <p>Loading...</p>;
+    return (
+      <MangaPageSkeleton/>
+    )
   }
 
   if (error) {
