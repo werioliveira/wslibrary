@@ -13,8 +13,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Modal } from "@/components/Modal";
 import MangaPageSkeleton from "@/components/manga-page-skeleton";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 
 interface Manga {
   id: string;
