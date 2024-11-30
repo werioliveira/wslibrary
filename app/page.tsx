@@ -10,7 +10,7 @@ import { useState } from "react";
 export default function Home() {
   const { data: session } = useSession();
   const [status, setStatus] = useState("Lendo");
-  const [page, setPage] = useState(1);
+  const [page] = useState(1);
   // Funções para alterar o status
   const handleStatusChange = (newStatus: string) => {
     setStatus(newStatus);
