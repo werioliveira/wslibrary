@@ -34,7 +34,13 @@ export default function Home() {
             >
               Pretendo Ler
             </Button>
-
+            <Button
+              variant="secondary"
+              onClick={() => handleStatusChange("Dropado")}
+              disabled={status === "Dropado"}
+            >
+              Dropado
+            </Button>
           </div>
           <MangaContainer status={status} />
           <AddMangaButton />
