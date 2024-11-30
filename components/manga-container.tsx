@@ -3,42 +3,47 @@ import { MangaCard } from "./manga-card";
 import { useMangas } from "@/hooks/useMangas";
 import { useState } from "react";
 import { Pagination } from "./pagination";
+import { MangaCardSkeleton } from "./manga-card-skeleton";
 
 interface MangaCardProps {
-    name: string
-    image: string
-    chapter: number
-    lastUpdate: string
-    website: string,
-    linkToWebsite: string,
-    id: string
-  }
+  name: string;
+  image: string;
+  chapter: number;
+  lastUpdate: string;
+  website: string;
+  linkToWebsite: string;
+  id: string;
+}
 export function MangaContainer() {
-    const { data: session } = useSession()
-    const [currentPage, setCurrentPage] = useState(1)
-    const ITEMS_PER_PAGE = 12
-    const { mangas, isLoading, isError } = useMangas(session?.user?.id);
-    if (isLoading) return <p>Carregando...</p>;
-    if (isError) return <p>Erro ao carregar os mangás.</p>;
-    const allManga = mangas.mangas
-    const totalPages = Math.ceil(allManga.length / ITEMS_PER_PAGE)
-    const mangaList = allManga.slice(
-      (currentPage - 1) * ITEMS_PER_PAGE,
-      currentPage * ITEMS_PER_PAGE
-    )
+  const { data: session } = useSession();
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+  const { mangas, pagination, isLoading, isError } = useMangas(
+    session?.user?.id,
+    currentPage,
+    ITEMS_PER_PAGE
+  );
+  if (isLoading)
     return (
-<>
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {mangaList.map((manga: MangaCardProps, index: number) => (
-            <MangaCard key={index} {...manga} />
-        ))}
-    </div>
-              <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              />
-              </>
-    )
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+        <MangaCardSkeleton />
+      </div>
+    );
+  if (isError) return <p>Erro ao carregar os mangás.</p>;
 
-  }
+  return (
+    <>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+        {mangas.map((manga: MangaCardProps, index: number) => (
+          <MangaCard key={index} {...manga} />
+        ))}
+      </div>
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={pagination.totalPages}
+        onPageChange={setCurrentPage}
+      />
+    </>
+  );
+}

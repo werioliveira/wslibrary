@@ -1,22 +1,27 @@
-import useSWR from 'swr';
+import useSWR from "swr";
 
 // Função fetcher
 const fetcher = async (url: string) => {
   const res = await fetch(url);
   if (!res.ok) {
-    throw new Error('Erro ao buscar dados');
+    throw new Error("Erro ao buscar dados");
   }
   return res.json(); // Certifique-se de que isso retorna o que você espera
 };
 
 // Hook personalizado para buscar mangás
-export function useMangas(userId: string | undefined) {
+export function useMangas(
+  userId: string | undefined,
+  page: number,
+  limit: number
+) {
   const { data, error, isLoading } = useSWR(
-    userId ? `/api/manga?userId=${userId}` : null, // Somente busca se userId existir
+    userId ? `/api/manga?userId=${userId}&page=${page}&limit=${limit}` : null, // Inclui paginação na URL
     fetcher
   );
   return {
-    mangas: data ?? [], // Evita undefined e retorna um array vazio como fallback
+    mangas: data?.mangas ?? [], // Evita undefined e retorna um array vazio como fallback
+    pagination: data?.pagination ?? { page: 1, totalPages: 1, totalItems: 0 }, // Evita undefined
     isLoading,
     isError: !!error,
   };

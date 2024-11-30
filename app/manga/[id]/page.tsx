@@ -3,10 +3,15 @@
 import { use, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronUp, ChevronDown } from "lucide-react";
-import { Toaster, toast } from 'sonner'
+import {
+  ChevronUp,
+  ChevronDown,
+  Edit,
+} from "lucide-react";
+import { Toaster, toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Modal } from "@/components/Modal";
 
 interface Manga {
   id: string;
@@ -14,17 +19,24 @@ interface Manga {
   image: string;
   chapter: number;
   linkToWebsite: string;
+  website: string;
 }
 
-
-export default function MangaPage({ params }: { params: Promise<{ id: string }> }) {
+export default function MangaPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = use(params); // Resolva a Promise usando o hook `use`
-  
+
   const [manga, setManga] = useState<Manga | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
-  const route = useRouter()
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState<Manga | null>(null);
+
+  const route = useRouter();
   useEffect(() => {
     const fetchManga = async () => {
       try {
@@ -36,10 +48,10 @@ export default function MangaPage({ params }: { params: Promise<{ id: string }> 
         setManga(data);
       } catch (err: unknown) {
         if (err instanceof Error) {
-            setError(err.message);
-          } else {
-            setError("An unknown error occurred");
-          }
+          setError(err.message);
+        } else {
+          setError("An unknown error occurred");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -47,7 +59,28 @@ export default function MangaPage({ params }: { params: Promise<{ id: string }> 
 
     fetchManga();
   }, [id]);
+  const handleEdit = () => {
+    setEditData(manga); // Preenche o formulário com os dados atuais
+    setIsEditing(true);
+  };
+  const handleSave = async () => {
+    if (!editData) return;
 
+    try {
+      const response = await fetch(`/api/manga/${editData.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editData),
+      });
+      if (!response.ok) toast.error("Error updating manga.");
+      setManga(editData); // Atualiza os dados locais
+      toast.success("Manga updated successfully!");
+    } catch (err) {
+      toast.error("Error updating manga."+err);
+    } finally {
+      setIsEditing(false);
+    }
+  };
   const updateChapter = (increment: number) => {
     setManga((prev) =>
       prev
@@ -58,6 +91,7 @@ export default function MangaPage({ params }: { params: Promise<{ id: string }> 
         : null
     );
   };
+
   const saveChapterToDatabase = async () => {
     if (!manga) return;
 
@@ -75,31 +109,29 @@ export default function MangaPage({ params }: { params: Promise<{ id: string }> 
       }
 
       toast.success("Chapter updated successfully!");
-
     } catch (error) {
-        toast.error("Error updating chapter!" + error);
+      toast.error("Error updating chapter!" + error);
     } finally {
       setIsUpdating(false);
-
     }
   };
   const deleteManga = async () => {
     if (!manga) return;
     try {
-        const response = await fetch(`/api/manga/${id}`, {
-          method: "DELETE",
-        });
-    
-        if (!response.ok) {
-          toast.error("Failed to delete manga");
-        }
-        toast.success("Manga deleted successfully!");
-        route.push("/");
-      } catch (error) {
-        console.error("Error deleting manga:", error);
+      const response = await fetch(`/api/manga/${id}`, {
+        method: "DELETE",
+      });
 
-        toast.error("Error deleting manga");
+      if (!response.ok) {
+        toast.error("Failed to delete manga");
       }
+      toast.success("Manga deleted successfully!");
+      route.push("/");
+    } catch (error) {
+      console.error("Error deleting manga:", error);
+
+      toast.error("Error deleting manga");
+    }
   };
   if (isLoading) {
     return <p>Loading...</p>;
@@ -115,74 +147,169 @@ export default function MangaPage({ params }: { params: Promise<{ id: string }> 
 
   return (
     <>
-    <Toaster richColors closeButton/>
-    <div className="container mx-auto py-8 px-4">
-      <Card className="max-w-2xl mx-auto">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-6">
-            <div className="relative w-full md:w-1/3 aspect-[3/4] text-center">
-              <img
-                src={manga.image}
-                alt={manga.name}
-                
-                className="object-cover rounded-lg"
+      <Toaster richColors closeButton />
+      <div className="container mx-auto py-8 px-4">
+        <Card className="bg-zinc-950 border-zinc-800 overflow-hidden">
+          <CardContent className="p-0">
+            <div className="flex flex-col md:flex-row">
+              <div className="relative md:w-1/3 aspect-[3/4]">
+                <img
+                  src={manga.image}
+                  alt={manga.name}
+                  className="w-full h-full object-cover"
                 />
-                <Link className="text-xl font-bold mb-4 text-gray" target="_blank" href={manga.linkToWebsite}>Acessar Site</Link>
-            </div>
-            <div className="flex-1">
-              <h1 className="text-2xl font-bold mb-4">{manga.name}</h1>
-              
-              <div className="space-y-4">
-                <div>
-                  <h2 className="text-lg font-semibold mb-2">Current Chapter</h2>
-                  <div className="flex items-center">
-                    <div className="w-20 text-center">
-                      <span className="text-3xl font-bold transition-all duration-200">{manga.chapter}</span>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        onClick={() => updateChapter(1)}
-                        aria-label="Increase chapter"
-                        >
-                        <ChevronUp className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        onClick={() => updateChapter(-1)}
-                        aria-label="Decrease chapter"
-                        >
-                        <ChevronDown className="h-4 w-4" />
-                      </Button>
-                    </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/70 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-4 flex justify-center items-center text-center ">
+                  <Link
+                    href={manga.linkToWebsite}
+                    target="_blank"
+                    className="website-link text-white text-lg font-semibold"
+                  >
+                    {manga.website}
+                  </Link>
+                </div>
+              </div>
+              <div className="flex-1 p-6 bg-zinc-950">
+                <div className="flex justify-between items-start mb-4">
+                  <h1 className="text-2xl font-bold text-white">
+                    {manga.name}
+                  </h1>
+                  <div className="flex gap-2">
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      onClick={handleEdit}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
-                <Button onClick={() => updateChapter(1)} className="w-full">
-                  Mark Next Chapter as Read
-                </Button>
-                <Button
-                  onClick={saveChapterToDatabase}
-                  className="w-full"
-                  disabled={isUpdating}
-                  >
-                  {isUpdating ? "Updating..." : "Save Chapter to Database"}
-                </Button>
-                <Button
-                  onClick={deleteManga}
-                  className="w-full"
-                  disabled={isUpdating}
-                  variant="destructive"
-                  >
-                  {isUpdating ? "Deletando..." : "Deletar Manga"}
-                </Button>
+
+                <div className="flex flex-col h-full justify-items-center">
+                  <div className="py-2">
+                    <h2 className="text-lg font-semibold text-zinc-300 mb-2">
+                      Current Chapter
+                    </h2>
+                    <div className="flex items-center">
+                      <div className="w-20 text-center">
+                        <span className="text-3xl font-bold text-white transition-all duration-200">
+                          {manga.chapter}
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => updateChapter(1)}
+                          aria-label="Increase chapter"
+                        >
+                          <ChevronUp className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => updateChapter(-1)}
+                          aria-label="Decrease chapter"
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-2 my-auto">
+                    <Button
+                      onClick={() => updateChapter(1)}
+                      className="w-full bg-zinc-800 hover:bg-zinc-700"
+                    >
+                      Mark Next Chapter as Read
+                    </Button>
+                    <Button
+                      onClick={saveChapterToDatabase}
+                      className="w-full bg-zinc-800 hover:bg-zinc-700"
+                      disabled={isUpdating}
+                    >
+                      {isUpdating ? "Updating..." : "Save Chapter to Database"}
+                    </Button>
+                    <Button
+                      onClick={deleteManga}
+                      className="w-full bg-red-900 hover:bg-red-800 text-white"
+                      disabled={isUpdating}
+                    >
+                      {isUpdating ? "Deletando..." : "Deletar Manga"}
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-     </>
+          </CardContent>
+        </Card>
+        <Modal isOpen={isEditing} onClose={() => setIsEditing(false)}>
+          <h2 className="text-xl font-bold text-white mb-4">Edit Manga</h2>
+          <form className="space-y-4">
+            <div>
+              <label className="text-zinc-400">Name</label>
+              <input
+                type="text"
+                value={editData?.name || ""}
+                onChange={(e) =>
+                  setEditData({ ...editData!, name: e.target.value })
+                }
+                className="w-full bg-zinc-800 text-white p-2 rounded"
+              />
+            </div>
+            <div>
+              <label className="text-zinc-400">Image URL</label>
+              <input
+                type="text"
+                value={editData?.image || ""}
+                onChange={(e) =>
+                  setEditData({ ...editData!, image: e.target.value })
+                }
+                className="w-full bg-zinc-800 text-white p-2 rounded"
+              />
+            </div>
+            <div>
+              <label className="text-zinc-400">Chapter</label>
+              <input
+                type="number"
+                value={editData?.chapter || ""}
+                onChange={(e) =>
+                  setEditData({ ...editData!, chapter: Number(e.target.value) })
+                }
+                className="w-full bg-zinc-800 text-white p-2 rounded"
+              />
+            </div>
+            <div>
+              <label className="text-zinc-400">Website Link</label>
+              <input
+                type="text"
+                value={editData?.linkToWebsite || ""}
+                onChange={(e) =>
+                  setEditData({ ...editData!, linkToWebsite: e.target.value })
+                }
+                className="w-full bg-zinc-800 text-white p-2 rounded"
+              />
+            </div>
+            <div>
+              <label className="text-zinc-400">Website Name</label>
+              <input
+                type="text"
+                value={editData?.website || ""}
+                onChange={(e) =>
+                  setEditData({ ...editData!, website: e.target.value })
+                }
+                className="w-full bg-zinc-800 text-white p-2 rounded"
+              />
+            </div>
+            <Button
+              onClick={handleSave}
+              className="w-full bg-blue-600 hover:bg-blue-500"
+            >
+              Save Changes
+            </Button>
+          </form>
+        </Modal>
+      </div>
+    </>
   );
 }

@@ -1,9 +1,43 @@
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
+
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     // Resolve o Promise de params
     const { id } = await params; 
+    const session = await auth()
+
+    if (!session || !session.user || !session.user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    try {
+      const manga = await db.manga.findUnique({
+        where: { id },
+      });
+  
+      if (!manga) {
+        return NextResponse.json({ error: "Manga not found" }, { status: 404 });
+      }
+    // Verifica se o mangá pertence ao usuário autenticado
+    if (manga.userId !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+      return NextResponse.json(manga);
+    } catch (error) {
+      return NextResponse.json({ error: "Internal Server Error"+ error }, { status: 500 });
+    }
+  }
+  export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    const session = await auth()
+
+    if (!session || !session.user || !session.user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const { id } = await params;
+    const { chapter, name, image, linkToWebsite } = await request.json();
+
   
     try {
       const manga = await db.manga.findUnique({
@@ -14,25 +48,19 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         return NextResponse.json({ error: "Manga not found" }, { status: 404 });
       }
   
-      return NextResponse.json(manga);
-    } catch (error) {
-      return NextResponse.json({ error: "Internal Server Error"+ error }, { status: 500 });
-    }
-  }
-  export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
-    const { chapter } = await request.json();
+      // Verifica se o mangá pertence ao usuário autenticado
+      if (manga.userId !== session.user.id) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
   
-    try {
       const updatedManga = await db.manga.update({
         where: { id },
-        data: { chapter },
+        data: { name, image, linkToWebsite, chapter },
       });
   
       return NextResponse.json(updatedManga);
     } catch (error) {
-
-      return NextResponse.json({ error: "Internal Server Error"+ error }, { status: 500 });
+      return NextResponse.json({ error: "Internal Server Error"+error }, { status: 500 });
     }
   } 
   
@@ -40,10 +68,27 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     request: Request,
     { params }: { params: Promise<{ id: string }> }
   ) {
+    const session = await auth()
+
+    if (!session || !session.user || !session.user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const { id } = await params;
   
     try {
-      // Deletar o mangá com o ID fornecido
+      const manga = await db.manga.findUnique({
+        where: { id },
+      });
+  
+      if (!manga) {
+        return NextResponse.json({ error: "Manga not found" }, { status: 404 });
+      }
+  
+      // Verifica se o mangá pertence ao usuário autenticado
+      if (manga.userId !== session.user.id) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+  
       const deletedManga = await db.manga.delete({
         where: { id },
       });
@@ -53,9 +98,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         deletedManga,
       });
     } catch (error) {
-      return NextResponse.json(
-        { error: "Failed to delete manga"+ error },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Failed to delete manga"+error }, { status: 500 });
     }
   }

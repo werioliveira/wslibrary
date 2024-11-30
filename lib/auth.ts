@@ -30,9 +30,12 @@ export const { handlers: { GET, POST }, signIn, signOut, auth } = NextAuth({
       }
       return session;
     },
-    async jwt({ token, account }) {
+    async jwt({ token, user, account }) {
       if (account) {
         token.accessToken = account.access_token;
+      }
+      if (user) {
+        token.id = user.id; // Adiciona o ID do usuário ao token
       }
       return token;
     },
