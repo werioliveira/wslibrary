@@ -33,7 +33,7 @@ export function MangaContainer() {
 
   return (
     <>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 transition-all ease-in-out duration-500">
         {mangas.map((manga: MangaCardProps, index: number) => (
           <MangaCard key={index} {...manga} />
         ))}

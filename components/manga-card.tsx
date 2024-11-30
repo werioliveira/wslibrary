@@ -20,7 +20,7 @@ export function MangaCard({
 }: MangaCardProps) {
   return (
     <Link href={`/manga/${id}`} className="block group">
-      <Card className="bg-zinc-950 rounded-xl overflow-hidden transition-all duration-300 group-hover:shadow-lg group-hover:shadow-zinc-800/30 border-zinc-800 flex flex-col h-full">
+      <Card className="bg-zinc-950 rounded-xl overflow-hidden transition-all ease-in-out duration-500 group-hover:shadow-lg group-hover:shadow-zinc-800/30 border-zinc-800 flex flex-col h-full">
         <div className="relative pt-[133%] overflow-hidden">
           <img
             src={image}
