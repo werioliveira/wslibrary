@@ -12,6 +12,7 @@ export function Pagination({
   totalPages,
   onPageChange,
 }: PaginationProps) {
+  console.log(currentPage)
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   return (
@@ -30,6 +31,7 @@ export function Pagination({
           variant={page === currentPage ? "secondary" : "outline"}
           onClick={() => onPageChange(page)}
           className="text-gray-600 hover:text-gray-800"
+          disabled={currentPage === page}
         >
           {page}
         </Button>
