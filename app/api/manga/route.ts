@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
     const page = parseInt(req.nextUrl.searchParams.get("page") || "1"); // Página atual, padrão 1
     const limit = parseInt(req.nextUrl.searchParams.get("limit") || "10"); // Número de itens por página, padrão 10
     const status = req.nextUrl.searchParams.get("status") || "Lendo";
+    const name = req.nextUrl.searchParams.get("name");
 
     if (!userId) {
         return NextResponse.json({ error: 'User ID é obrigatório' }, { status: 400 });
@@ -41,35 +42,43 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-        const skip = (page - 1) * limit; // Calcula quantos itens devem ser ignorados
-        const mangas = await db.manga.findMany({
-          where: {
-              userId: userId,
-              status: <MangaStatus>status,  // Adiciona a condição de status ser igual a "Lendo"
-          },
-          skip: skip,
+      const skip = (page - 1) * limit; // Calcula o deslocamento
+      const where: any = {
+          userId,
+          status: <MangaStatus>status, // Filtra pelo status
+      };
+
+      // Adiciona filtro pelo nome, se fornecido
+      if (name) {
+          where.name = {
+              contains: name, // Busca parcialmente
+              mode: "insensitive", // Ignora maiúsculas/minúsculas
+          };
+      }
+
+      // Busca os mangás com paginação
+      const mangas = await db.manga.findMany({
+          where,
+          skip,
           take: limit,
       });
 
-      // Agora, filtramos no lado do código os mangas com "Lendo" ou sem status
-      
+      // Conta o total de mangás com os filtros aplicados
+      const totalMangas = await db.manga.count({ where });
+      const totalPages = Math.ceil(totalMangas / limit);
 
-
-        const totalMangas = await db.manga.count({ where: { userId: userId, status: <MangaStatus>status } }); // Conta o total de mangas
-        const totalPages = Math.ceil(totalMangas / limit); // Calcula o total de páginas
-
-        return NextResponse.json(
-            {
-                mangas,
-                pagination: {
-                    page,
-                    limit,
-                    totalPages,
-                    totalItems: totalMangas,
-                },
-            },
-            { status: 200 }
-        );
+      return NextResponse.json(
+          {
+              mangas,
+              pagination: {
+                  page,
+                  limit,
+                  totalPages,
+                  totalItems: totalMangas,
+              },
+          },
+          { status: 200 }
+      );
     } catch (error) {
         return NextResponse.json({ message: 'Erro ao buscar mangas: ' + error }, { status: 500 });
     }

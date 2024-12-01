@@ -1,12 +1,13 @@
-"use client"
+'use client'
 
 import Link from 'next/link'
-import { signIn, signOut, useSession } from 'next-auth/react'
-import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useSession, signIn, signOut } from "next-auth/react"
+import { Button } from "@/components/ui/button"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export function Navbar() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
 
   return (
     <nav className="bg-primary text-primary-foreground">
@@ -15,7 +16,13 @@ export function Navbar() {
           Manga Tracker
         </Link>
         <div className="flex items-center gap-4">
-          {session ? (
+          {status === "loading" ? (
+            <>
+              <Skeleton className="w-32 h-4 rounded-full" />
+              <Skeleton className="w-10 h-10 rounded-full" />
+              <Skeleton className="w-20 h-10 rounded-md" />
+            </>
+          ) : status === "authenticated" && session ? (
             <>
               <span className="hidden sm:inline">Welcome, {session.user?.name}</span>
               <Avatar>
@@ -36,4 +43,3 @@ export function Navbar() {
     </nav>
   )
 }
-

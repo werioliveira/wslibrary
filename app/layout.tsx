@@ -1,7 +1,9 @@
+
 import './globals.css'
 import { Inter } from 'next/font/google'
 import { Navbar } from '@/components/navbar'
 import { Providers } from './providers'
+
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -15,11 +17,12 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+
   return (
     <html lang="en">
       <body className={inter.className + " bg-zinc-950 text-white min-h-screen"}>
         <Providers>
-          <Navbar />
+          <Navbar  />
           {children}
         </Providers>
       </body>

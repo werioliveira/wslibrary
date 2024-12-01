@@ -14,10 +14,15 @@ export function useMangas(
   userId: string | undefined,
   page: number,
   limit: number,
-  status?: string
+  status?: string,
+  name?: string
 ) {
   const { data, error, isLoading } = useSWR(
-    userId ? `/api/manga?userId=${userId}&page=${page}&limit=${limit}&status=${status}` : null, // Inclui paginação na URL
+    userId
+      ? `/api/manga?userId=${userId}&page=${page}&limit=${limit}&status=${status}${
+          name ? `&name=${encodeURIComponent(name)}` : ""
+        }` // Adiciona `name` como parâmetro, se fornecido
+      : null,
     fetcher
   );
   return {
