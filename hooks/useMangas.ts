@@ -13,7 +13,7 @@ const fetcher = async (url: string) => {
 export function useMangas(
   userId: string | undefined,
   page: number,
-  limit: number,
+  limit: number | string,
   status?: string,
   name?: string
 ) {

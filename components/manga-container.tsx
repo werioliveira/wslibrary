@@ -19,7 +19,7 @@ export function MangaContainer({ status, page, searchName }: { status: string; p
   const { data: session } = useSession();
   const [currentPage, setCurrentPage] = useState(1);
  // Estado para o campo de busca
-  const ITEMS_PER_PAGE = 10;
+  const ITEMS_PER_PAGE = process.env.PAGE_LIMIT || 10;
   const { mangas, pagination, isLoading, isError } = useMangas(
     session?.user?.id,
     currentPage,
