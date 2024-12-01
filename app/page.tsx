@@ -1,6 +1,6 @@
 "use client";
 
-import { signIn, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 
 import { Button } from "@/components/ui/button";
 import { AddMangaButton } from "@/components/add-manga-button";
