@@ -1,6 +1,6 @@
 
 import { db } from "@/lib/db";
-import { MangaStatus } from "@prisma/client";
+import { MangaStatus, Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -43,11 +43,13 @@ export async function POST(req: NextRequest) {
 
     try {
       const skip = (page - 1) * limit; // Calcula o deslocamento
-      const where: any = {
-          userId,
-          status: <MangaStatus>status, // Filtra pelo status
+  
+      // Define o tipo do where explicitamente
+      const where: Prisma.MangaWhereInput = {
+          userId: userId, // Filtra pelo ID do usuário
+          status: status as MangaStatus, // Filtra pelo status, converte para o tipo correto
       };
-
+  
       // Adiciona filtro pelo nome, se fornecido
       if (name) {
           where.name = {
@@ -55,18 +57,18 @@ export async function POST(req: NextRequest) {
               mode: "insensitive", // Ignora maiúsculas/minúsculas
           };
       }
-
+  
       // Busca os mangás com paginação
       const mangas = await db.manga.findMany({
           where,
           skip,
           take: limit,
       });
-
+  
       // Conta o total de mangás com os filtros aplicados
       const totalMangas = await db.manga.count({ where });
       const totalPages = Math.ceil(totalMangas / limit);
-
+  
       return NextResponse.json(
           {
               mangas,
@@ -79,7 +81,10 @@ export async function POST(req: NextRequest) {
           },
           { status: 200 }
       );
-    } catch (error) {
-        return NextResponse.json({ message: 'Erro ao buscar mangas: ' + error }, { status: 500 });
-    }
+  } catch (error) {
+      return NextResponse.json(
+          { message: "Erro ao buscar mangás: " + error },
+          { status: 500 }
+      );
+  }
 }
