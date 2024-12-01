@@ -63,6 +63,9 @@ export async function POST(req: NextRequest) {
           where,
           skip,
           take: limit,
+          orderBy: {
+            updatedAt: "desc", // Ordena por updatedAt em ordem decrescente
+        },
       });
   
       // Conta o total de mangás com os filtros aplicados
