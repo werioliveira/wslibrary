@@ -51,7 +51,7 @@ export function AddMangaButton() {
           userId: session.user.id,
         }),
       });
-      mutate(`/api/manga?userId=${session.user!.id}`);
+      mutate(`/api/manga?userId=${session.user!.id}&page=&limit=&status=&name=`);
       if (!res.ok) toast.error("Erro ao adicionar manga!");
       toast.success("Manga adicionada com sucesso!");
     } catch (e) {
