@@ -37,6 +37,7 @@ enum MangaStatus {
 model Manga {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String
+  secondName String?
   image     String
   chapter   Int
   website   String
@@ -46,6 +47,7 @@ model Manga {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, secondName, name])
 }
 
 model Account {

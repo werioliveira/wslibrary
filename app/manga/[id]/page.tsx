@@ -17,6 +17,7 @@ import MangaPageSkeleton from "@/components/manga-page-skeleton";
 interface Manga {
   id: string;
   name: string;
+  secondName?: string;
   image: string;
   chapter: number;
   linkToWebsite: string;
@@ -79,11 +80,13 @@ export default function MangaPage({
       });
       if (!response.ok) toast.error("Error updating manga.");
       setManga(editData); // Atualiza os dados locais
-      toast.success("Manga updated successfully!");
+      
     } catch (err) {
       toast.error("Error updating manga."+err);
     } finally {
       setIsEditing(false);
+      toast.success("Manga updated successfully!");
+      
     }
   };
   const updateChapter = (increment: number) => {
@@ -112,12 +115,12 @@ export default function MangaPage({
         toast.error("Error updating chapter!");
         //throw new Error("Failed to update chapter in database.");
       }
-
-      toast.success("Chapter updated successfully!");
+      
     } catch (error) {
       toast.error("Error updating chapter!" + error);
     } finally {
       setIsUpdating(false);
+      toast.success("Chapter updated successfully!");
     }
   };
   const deleteManga = async () => {
@@ -260,6 +263,17 @@ export default function MangaPage({
                 value={editData?.name || ""}
                 onChange={(e) =>
                   setEditData({ ...editData!, name: e.target.value })
+                }
+                className="w-full bg-zinc-800 text-white p-2 rounded"
+              />
+            </div>
+            <div>
+              <label className="text-zinc-400">Alternative Name</label>
+              <input
+                type="text"
+                value={editData?.secondName || ""}
+                onChange={(e) =>
+                  setEditData({ ...editData!, secondName: e.target.value })
                 }
                 className="w-full bg-zinc-800 text-white p-2 rounded"
               />

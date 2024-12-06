@@ -4,6 +4,7 @@ import { useMangas } from "@/hooks/useMangas";
 import { useEffect, useState } from "react";
 import { Pagination } from "./pagination";
 import { MangaCardSkeleton } from "./manga-card-skeleton";
+import { Skeleton } from "./ui/skeleton";
 
 interface MangaCardProps {
   name: string;
@@ -34,9 +35,14 @@ export function MangaContainer({ status, page, searchName }: { status: string; p
   
   if (isLoading)
     return (
+  <>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
         <MangaCardSkeleton />
       </div>
+        <div className="flex justify-center">
+          <Skeleton className="h-10 w-40" />
+        </div>      
+  </>
     );
   if (isError) return <p>Erro ao carregar os mangás.</p>;
   if (!isLoading && mangas.length === 0) {

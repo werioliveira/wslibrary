@@ -4,10 +4,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, image, chapter, website, userId, linkToWebsite, status } =
+    const { name, secondName, image, chapter, website, userId, linkToWebsite, status } =
       await req.json();
     const data = {
       name: name,
+      secondName: secondName,
       image: image,
       chapter: parseInt(chapter),
       website: website,
