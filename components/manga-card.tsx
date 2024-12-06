@@ -9,6 +9,7 @@ import {
 
 interface MangaCardProps {
   name: string;
+  secondName?: string;
   image: string;
   chapter: number;
   lastUpdate: string;
@@ -20,6 +21,7 @@ interface MangaCardProps {
 export function MangaCard({
   id,
   name,
+  secondName,
   image,
   chapter,
   website,
@@ -52,8 +54,23 @@ export function MangaCard({
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-            <span className="text-xs text-zinc-400">Cap. {chapter}</span>
-            <span className="text-xs text-zinc-500 truncate">{website}</span>
+            
+            <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>  
+            {secondName && (          
+              <h4 className="font-small text-xs text-zinc-500 leading-tight mb-1 overflow-hidden line-clamp-1 text-start">
+              {secondName}
+            </h4>
+            )}
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{secondName}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <span className="text-xs text-zinc-400">Cap. {chapter}</span>
+            <span className="text-xs text-emerald-500 truncate">{website}</span>
           </div>
         </CardContent>
       </Card>

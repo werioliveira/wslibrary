@@ -8,6 +8,7 @@ import { Skeleton } from "./ui/skeleton";
 
 interface MangaCardProps {
   name: string;
+  secondName?: string;
   image: string;
   chapter: number;
   lastUpdate: string;
@@ -36,7 +37,7 @@ export function MangaContainer({ status, page, searchName }: { status: string; p
   if (isLoading)
     return (
   <>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 ">
         <MangaCardSkeleton />
       </div>
         <div className="flex justify-center">
@@ -51,7 +52,7 @@ export function MangaContainer({ status, page, searchName }: { status: string; p
   return (
     <>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 transition-all ease-in-out duration-500">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 transition-all ease-in-out duration-500 mx-1.5 lg:mx-0">
         {mangas.map((manga: MangaCardProps) => (
           <MangaCard key={manga.id} {...manga} />
         ))}

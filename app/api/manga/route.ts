@@ -59,13 +59,23 @@ export async function GET(req: NextRequest) {
       status: status as MangaStatus, // Filtra pelo status, converte para o tipo correto
     };
 
-    // Adiciona filtro pelo nome, se fornecido
-    if (name) {
-      where.name = {
-        contains: name, // Busca parcialmente
-        mode: "insensitive", // Ignora maiúsculas/minúsculas
-      };
-    }
+  // Adiciona filtro pelo nome ou pelo secondName, se fornecido
+  if (name) {
+    where.OR = [
+      {
+        name: {
+          contains: name, // Busca parcialmente no campo `name`
+          mode: "insensitive", // Ignora maiúsculas/minúsculas
+        },
+      },
+      {
+        secondName: {
+          contains: name, // Busca parcialmente no campo `secondName`
+          mode: "insensitive", // Ignora maiúsculas/minúsculas
+        },
+      },
+    ];
+  }
     // Busca os mangás com paginação
     const mangas = await db.manga.findMany({
       where,
