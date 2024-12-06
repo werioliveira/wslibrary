@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { AddMangaButton } from "@/components/add-manga-button";
 import { MangaContainer } from "@/components/manga-container";
 import { useState } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Home() {
   const { data: session } = useSession();

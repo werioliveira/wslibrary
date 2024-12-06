@@ -14,7 +14,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSession } from "next-auth/react";
-import { mutate } from "swr";
 import { toast, Toaster } from "sonner";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useMangas } from "@/hooks/useMangas";
