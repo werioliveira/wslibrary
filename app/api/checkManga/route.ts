@@ -10,13 +10,13 @@ interface ScrapedManga {
 export async function GET() {
   try {
     const allScrapedMangas: ScrapedManga[] = [];
-
+/*
     // Fontes: Seita Celestial (Página 1 e Página 2)
     const seitaCelestialUrls = [
       `https://seitacelestial.com/comics/?page=2&order=update`,
       `https://seitacelestial.com/comics/?page=1&order=update`
     ];
-/*
+
     // Fazer o scrape das duas páginas
     for (const url of seitaCelestialUrls) {
       const seitaMangas = await fetchMangasFromSite(url, parseSeitaCelestial);
