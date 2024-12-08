@@ -7,7 +7,7 @@ interface ScrapedManga {
   chapter: number;
 }
 // Handler principal para a rota GET
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
    // Verifica se o cabeçalho "GitHub-Action" está presente e se o valor é o esperado
   //  const githubHeader = request.headers.get("GitHub-Action");
