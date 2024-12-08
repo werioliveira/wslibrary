@@ -2,13 +2,6 @@ import scrape from "@/lib/scraperWorker";
 import { NextResponse } from "next/server";
 
 // Interface para o manga retornado da API (scraping)
-interface ScrapedManga {
-  title: string;
-  link: string;
-  type?: string;
-  chapter: number;
-}
-
 // Handler principal para a rota GET
 export async function GET() {
   try {
