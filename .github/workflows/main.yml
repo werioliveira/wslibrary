@@ -12,5 +12,5 @@ jobs:
     steps:
       - name: Request to check manga updates
         run: |
-          curl -X GET https://wslibrary.werioliveira.site/api/checkManga \
+          curl -X GET https://wslibrary.werioliveira.site/api/mangas \
           -H "GitHub-Action: eKZ8IyclYXm9msLG3YGJ0WVQwTfzqDVGTerW8X9MMKukrP72r9dC2Y5Jl4zzzY7c"
