@@ -46,7 +46,7 @@ export async function GET() {
     // Configuração do Fuse.js para comparar os títulos
     const fuse = new Fuse(results, {
       keys: ["title"],
-      threshold: 0.3, // Define a tolerância para o match. 0.3 significa até 70% de similaridade
+      threshold: 0.1, // Define a tolerância para o match. 0.3 significa até 70% de similaridade
       includeScore: true,
     });
 
