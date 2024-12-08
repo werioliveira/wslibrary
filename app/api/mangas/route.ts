@@ -3,8 +3,7 @@ import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
-                    `${request.headers.get("origin")}`; // Fallback para o host atual
+    const baseUrl = "https://wslibrary.werioliveira.site";
 
     // Rotas de scraping individuais
     const endpoints = [
