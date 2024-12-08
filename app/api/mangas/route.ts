@@ -28,7 +28,7 @@ export async function GET() {
     const uniqueMangas = deduplicateMangas(allMangas);
 
     // Processar mangás únicos e gerar notificações
-    const notifications = processMangas(uniqueMangas);
+    processMangas(uniqueMangas);
     return NextResponse.json({ mangas: "Novos mangás atualizados com sucesso." }, { status: 200 });
   } catch (error) {
     console.error("Erro ao consolidar mangas:", error);
