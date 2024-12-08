@@ -44,6 +44,7 @@ model Manga {
   linkToWebsite String
   status    MangaStatus? @default(Lendo)
   userId    String   @db.ObjectId
+  hasNewChapter   Boolean      @default(false) // Indica se há novos capítulos
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)

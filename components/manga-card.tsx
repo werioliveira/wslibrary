@@ -16,6 +16,7 @@ interface MangaCardProps {
   website: string;
   linkToWebsite: string;
   id: string;
+  hasNewChapter: boolean;
 }
 
 export function MangaCard({
@@ -25,6 +26,7 @@ export function MangaCard({
   image,
   chapter,
   website,
+  hasNewChapter,
 }: MangaCardProps) {
   return (
     <Link href={`/manga/${id}`} className="block group">
@@ -36,6 +38,12 @@ export function MangaCard({
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              {/* Badge de novo capítulo */}
+      {hasNewChapter && (
+        <div className="absolute top-2 right-2 bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded shadow-lg">
+          Novo Capítulo!
+        </div>
+      )}
         </div>
         <CardContent className="p-3 bg-zinc-950 flex-grow flex flex-col justify-between">
           {/* Tooltip para mostrar o texto completo */}

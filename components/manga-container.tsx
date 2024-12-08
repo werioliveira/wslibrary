@@ -15,6 +15,7 @@ interface MangaCardProps {
   website: string;
   linkToWebsite: string;
   id: string;
+  hasNewChapter: boolean;
 }
 export function MangaContainer({ status, page, searchName }: { status: string; page: number; searchName: string }) {
 
