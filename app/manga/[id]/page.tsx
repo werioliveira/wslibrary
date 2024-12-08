@@ -240,6 +240,13 @@ export default function MangaPage({
                     </div>
                   </div>
                   <div className="space-y-2 my-auto">
+                  <Button
+                      onClick={markAsRead}
+                      className="w-full bg-zinc-800 hover:bg-zinc-700"
+                      disabled={isUpdating || !manga.hasNewChapter}
+                    >
+                      {isUpdating ? "Updating..." : "Remove New Chapter Tag"}
+                    </Button>
                     <Button
                       onClick={() => updateChapter(1)}
                       className="w-full bg-zinc-800 hover:bg-zinc-700"
@@ -247,16 +254,10 @@ export default function MangaPage({
                       Mark Next Chapter as Read
                     </Button>
 
-                    <Button
-                      onClick={markAsRead}
-                      className="w-full bg-zinc-800 hover:bg-zinc-700"
-                      disabled={isUpdating || !manga.hasNewChapter}
-                    >
-                      {isUpdating ? "Updating..." : "Mark as Read"}
-                    </Button>
+
                     <Button
                       onClick={saveChapterToDatabase}
-                      className="w-full bg-zinc-800 hover:bg-zinc-700"
+                      className="w-full bg-emerald-600 hover:bg-emerald-700"
                       disabled={isUpdating}
                     >
                       {isUpdating ? "Updating..." : "Save Chapter to Database"}

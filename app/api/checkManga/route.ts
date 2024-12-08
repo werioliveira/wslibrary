@@ -48,9 +48,14 @@ export async function GET() {
     
     // Comparar os mangás do usuário com os resultados da API
     for (const manga of userMangas) {
-      const matchingManga = results.find((item) =>
-        item.title.toLowerCase() === manga.name.toLowerCase()
-      );
+        const matchingManga = results.find((item) => {
+            const lowerCaseTitle = item.title.toLowerCase();
+            const lowerCaseName = manga.name.toLowerCase();
+            const lowerCaseSecondName = manga.secondName?.toLowerCase();
+          
+            // Verifica se o título do mangá corresponde ao nome ou ao nome alternativo
+            return lowerCaseTitle === lowerCaseName || lowerCaseTitle === lowerCaseSecondName;
+          });
       if (matchingManga && matchingManga.chapter > manga.chapter) {
         notifications.push({
           userId: manga.userId,
