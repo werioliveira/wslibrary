@@ -1,5 +1,5 @@
 import { deduplicateMangas, fetchMangasFromSite, parseLerMangas, parseOldiSussytoons, parseSeitaCelestial, processMangas } from "@/lib/fetchManga";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 interface ScrapedManga {
   title: string;
   link: string;
