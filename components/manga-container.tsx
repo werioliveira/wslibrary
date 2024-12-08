@@ -6,6 +6,11 @@ import { Pagination } from "./pagination";
 import { MangaCardSkeleton } from "./manga-card-skeleton";
 import { Skeleton } from "./ui/skeleton";
 
+interface NewChapter {
+  chapter: number;
+  source: string;
+  link: string;
+}
 interface MangaCardProps {
   name: string;
   secondName?: string;
@@ -16,6 +21,8 @@ interface MangaCardProps {
   linkToWebsite: string;
   id: string;
   hasNewChapter: boolean;
+  newChapter: NewChapter,
+
 }
 export function MangaContainer({ status, page, searchName }: { status: string; page: number; searchName: string }) {
 

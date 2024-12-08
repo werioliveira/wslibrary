@@ -7,6 +7,7 @@ import {
   ChevronUp,
   ChevronDown,
   Edit,
+  ExternalLink,
 } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -24,6 +25,13 @@ interface Manga {
   status: string;
   website: string;
   hasNewChapter: boolean;
+  newChapter: NewChapter,
+}
+
+interface NewChapter {
+  chapter: number;
+  source: string;
+  link: string;
 }
 
 export default function MangaPage({
@@ -172,109 +180,128 @@ export default function MangaPage({
     <>
       <Toaster richColors closeButton />
       <div className="container mx-auto py-8 px-4">
-        <Card className="bg-zinc-950 border-zinc-800 overflow-hidden">
-          <CardContent className="p-0">
-            <div className="flex flex-col md:flex-row">
-              <div className="relative md:w-1/3 aspect-[3/4]">
-                <img
-                  src={manga.image}
-                  alt={manga.name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/70 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4 flex justify-center items-center text-center ">
-                  <Link
-                    href={manga.linkToWebsite}
-                    target="_blank"
-                    className="website-link text-white text-lg font-semibold"
-                  >
-                    {manga.website}
-                  </Link>
-                </div>
+      <Card className="bg-zinc-950 border-zinc-800 overflow-hidden">
+  <CardContent className="p-0">
+    <div className="flex flex-col md:flex-row">
+      <div className="relative md:w-1/3 aspect-[3/4]">
+        <img
+          src={manga.image}
+          alt={manga.name}
+          className="w-full h-full object-cover rounded-t-md md:rounded-none"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/70 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 p-4 flex justify-center items-center text-center">
+          <Link
+            href={manga.linkToWebsite}
+            target="_blank"
+            className="website-link text-white text-lg font-semibold"
+          >
+            {manga.website}
+          </Link>
+        </div>
+      </div>
+      
+      <div className="flex-1 p-6 bg-zinc-950 rounded-b-md md:rounded-none">
+        <div className="flex justify-between items-start mb-6">
+          <h1 className="text-2xl font-bold text-white">{manga.name}</h1>
+          <div className="flex gap-2">
+            <Button
+              size="icon"
+              variant="secondary"
+              onClick={handleEdit}
+              aria-label="Edit manga"
+            >
+              <Edit className="h-4 w-4" />
+            
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <div className="py-2">
+            <h2 className="text-lg font-semibold text-zinc-300 mb-2">Current Chapter</h2>
+            <div className="flex items-center">
+              <div className="w-20 text-center">
+                <span className="text-3xl font-bold text-white">{manga.chapter}</span>
               </div>
-              <div className="flex-1 p-6 bg-zinc-950">
-                <div className="flex justify-between items-start mb-4">
-                  <h1 className="text-2xl font-bold text-white">
-                    {manga.name}
-                  </h1>
-                  <div className="flex gap-2">
-                    <Button
-                      size="icon"
-                      variant="secondary"
-                      onClick={handleEdit}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex flex-col h-full justify-items-center">
-                  <div className="py-2">
-                    <h2 className="text-lg font-semibold text-zinc-300 mb-2">
-                      Current Chapter
-                    </h2>
-                    <div className="flex items-center">
-                      <div className="w-20 text-center">
-                        <span className="text-3xl font-bold text-white transition-all duration-200">
-                          {manga.chapter}
-                        </span>
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          onClick={() => updateChapter(1)}
-                          aria-label="Increase chapter"
-                        >
-                          <ChevronUp className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          onClick={() => updateChapter(-1)}
-                          aria-label="Decrease chapter"
-                        >
-                          <ChevronDown className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="space-y-2 my-auto">
-                  <Button
-                      onClick={markAsRead}
-                      className="w-full bg-zinc-800 hover:bg-zinc-700"
-                      disabled={isUpdating || !manga.hasNewChapter}
-                    >
-                      {isUpdating ? "Updating..." : "Remove New Chapter Tag"}
-                    </Button>
-                    <Button
-                      onClick={() => updateChapter(1)}
-                      className="w-full bg-zinc-800 hover:bg-zinc-700"
-                    >
-                      Mark Next Chapter as Read
-                    </Button>
-
-
-                    <Button
-                      onClick={saveChapterToDatabase}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700"
-                      disabled={isUpdating}
-                    >
-                      {isUpdating ? "Updating..." : "Save Chapter to Database"}
-                    </Button>
-                    <Button
-                      onClick={deleteManga}
-                      className="w-full bg-red-900 hover:bg-red-800 text-white"
-                      disabled={isUpdating}
-                    >
-                      {isUpdating ? "Deletando..." : "Deletar Manga"}
-                    </Button>
-                  </div>
-                </div>
+              <div className="flex flex-col gap-2">
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={() => updateChapter(1)}
+                  aria-label="Increase chapter"
+                >
+                  <ChevronUp className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={() => updateChapter(-1)}
+                  aria-label="Decrease chapter"
+                >
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+
+          <div className="space-y-2">
+            <Button
+              onClick={markAsRead}
+              className="w-full bg-zinc-800 hover:bg-zinc-700"
+              disabled={isUpdating || !manga.hasNewChapter}
+            >
+              {isUpdating ? "Updating..." : "Remove New Chapter Tag"}
+            </Button>
+
+            <Button
+              onClick={() => updateChapter(1)}
+              className="w-full bg-zinc-800 hover:bg-zinc-700"
+            >
+              Mark Next Chapter as Read
+            </Button>
+
+            <Button
+              onClick={saveChapterToDatabase}
+              className="w-full bg-emerald-600 hover:bg-emerald-700"
+              disabled={isUpdating}
+            >
+              {isUpdating ? "Updating..." : "Save Chapter to Database"}
+            </Button>
+
+            <Button
+              onClick={deleteManga}
+              className="w-full bg-red-900 hover:bg-red-800 text-white"
+              disabled={isUpdating}
+            >
+              {isUpdating ? "Deleting..." : "Delete Manga"}
+            </Button>
+            {manga.hasNewChapter && manga.newChapter && (
+      <div className="py-2 mb-4">
+        <h2 className="text-lg font-semibold text-zinc-300 mb-2">New Chapter Available</h2>
+        <div className="bg-zinc-800 p-3 rounded-md">
+          <p className="text-white mb-2">
+            Chapter {manga.newChapter.chapter} - {manga.newChapter.source}
+          </p>
+          <a
+            href={manga.newChapter.link}
+            target="_blank"
+            className="text-blue-400 hover:text-blue-300 flex items-center"
+          >
+            Read Now <ExternalLink className="h-4 w-4 ml-1" />
+          </a>
+        </div>
+      </div>
+    )}
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+  </CardContent>
+</Card>
+
         <Modal isOpen={isEditing} onClose={() => setIsEditing(false)}>
           <h2 className="text-xl font-bold text-white mb-4">Edit Manga</h2>
           <form className="space-y-4" onSubmit={handleSave}>

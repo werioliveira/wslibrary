@@ -7,6 +7,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip" // Supondo que você tenha um componente de Tooltip
 
+interface NewChapter {
+  chapter: number;
+  source: string;
+  link: string;
+}
 interface MangaCardProps {
   name: string;
   secondName?: string;
@@ -17,6 +22,7 @@ interface MangaCardProps {
   linkToWebsite: string;
   id: string;
   hasNewChapter: boolean;
+  newChapter: NewChapter,
 }
 
 export function MangaCard({
@@ -27,6 +33,7 @@ export function MangaCard({
   chapter,
   website,
   hasNewChapter,
+  newChapter
 }: MangaCardProps) {
   return (
     <Link href={`/manga/${id}`} className="block group">
@@ -79,6 +86,13 @@ export function MangaCard({
         </TooltipProvider>
         <span className="text-xs text-zinc-400">Cap. {chapter}</span>
             <span className="text-xs text-emerald-500 truncate">{website}</span>
+            {hasNewChapter && (
+              <>
+                <span className="text-xs text-zinc-400">New Chapter. {newChapter?.chapter}</span>
+                <span className="text-xs text-zinc-400">Fonte {newChapter?.source}</span>
+              </>
+            )}
+
           </div>
         </CardContent>
       </Card>
