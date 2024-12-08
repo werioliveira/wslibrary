@@ -1,0 +1,15 @@
+name: Manga Check Cron Job
+
+on:
+  schedule:
+    - cron: '*/10 * * * *' # A cada 10 minutos
+  workflow_dispatch: # Permite a execução manual
+
+jobs:
+  check-manga:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Request to check manga updates
+        run: |
+          curl -X GET https://wslibrary.werioliveira.site/api/checkManga
