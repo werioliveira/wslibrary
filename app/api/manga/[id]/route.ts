@@ -100,3 +100,36 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Failed to delete manga"+error }, { status: 500 });
     }
   }
+  export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    const session = await auth()
+
+    if (!session || !session.user || !session.user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const { id } = await params;
+    const { hasNewChapter } = await request.json();
+
+    try {
+      const manga = await db.manga.findUnique({
+        where: { id },
+      });
+  
+      if (!manga) {
+        return NextResponse.json({ error: "Manga not found" }, { status: 404 });
+      }
+  
+      // Verifica se o mangá pertence ao usuário autenticado
+      if (manga.userId !== session.user.id) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+  
+      const updatedManga = await db.manga.update({
+        where: { id },
+        data: { hasNewChapter: hasNewChapter },
+      });
+  
+      return NextResponse.json(updatedManga);
+    } catch (error) {
+      return NextResponse.json({ error: "Internal Server Error"+error }, { status: 500 });
+    }
+  }

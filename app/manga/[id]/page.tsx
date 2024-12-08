@@ -99,6 +99,19 @@ export default function MangaPage({
         : null
     );
   };
+  const markAsRead = async () => {
+    if (!manga) return;
+    try {
+       await fetch(`/api/manga/${manga.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hasNewChapter: false }),
+      });
+      toast.success("Chapter updated successfully!");
+    } catch (error) {
+      console.error("Error marking manga as read:", error);
+    }
+  };
 
   const saveChapterToDatabase = async () => {
     if (!manga) return;
@@ -232,6 +245,13 @@ export default function MangaPage({
                       className="w-full bg-zinc-800 hover:bg-zinc-700"
                     >
                       Mark Next Chapter as Read
+                    </Button>
+                    <Button
+                      onClick={markAsRead}
+                      className="w-full bg-zinc-800 hover:bg-zinc-700"
+                      disabled={isUpdating}
+                    >
+                      {isUpdating ? "Updating..." : "Mark as Read"}
                     </Button>
                     <Button
                       onClick={saveChapterToDatabase}
