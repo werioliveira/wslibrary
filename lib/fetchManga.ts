@@ -167,7 +167,6 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
       // Verificar se o newChapter.chapter é menor ou nulo
       if (!manga.newChapter || (isNewChapter(manga.newChapter) && matchingManga.chapter > manga.newChapter.chapter)) {
         notifications.push({
-          userId: manga.userId,
           mangaName: manga.name,
           currentChapter: manga.chapter,
           newChapter: newChapterData, // Agora `newChapter` é um objeto com número e origem

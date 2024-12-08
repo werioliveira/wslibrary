@@ -10,15 +10,15 @@ interface ScrapedManga {
 export async function GET(request: NextRequest) {
   try {
    // Verifica se o cabeçalho "GitHub-Action" está presente e se o valor é o esperado
-   const githubHeader = request.headers.get("GitHub-Action");
+  //  const githubHeader = request.headers.get("GitHub-Action");
 
-   // Substitua "YOUR_SECRET_TOKEN" pelo token que você configurou no GitHub Actions
-   if (githubHeader !== "eKZ8IyclYXm9msLG3YGJ0WVQwTfzqDVGTerW8X9MMKukrP72r9dC2Y5Jl4zzzY7c") {
-     return NextResponse.json(
-       { error: "Unauthorized access" },
-       { status: 403 } // Forbidden
-     );
-   }
+  //  // Substitua "YOUR_SECRET_TOKEN" pelo token que você configurou no GitHub Actions
+  //  if (githubHeader !== "eKZ8IyclYXm9msLG3YGJ0WVQwTfzqDVGTerW8X9MMKukrP72r9dC2Y5Jl4zzzY7c") {
+  //    return NextResponse.json(
+  //      { error: "Unauthorized access" },
+  //      { status: 403 } // Forbidden
+  //    );
+  //  }
     const allScrapedMangas: ScrapedManga[] = [];
 
     // Fontes: Seita Celestial (Página 1 e Página 2)
