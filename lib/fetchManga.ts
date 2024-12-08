@@ -11,16 +11,6 @@ interface ScrapedManga {
   chapter: number;
   source?: string;
 }
-type NewChapter = {
-  chapter: number;
-  source: string;
-  link: string;
-};
-
-// Adicione uma verificação de tipo
-function isNewChapter(obj: any): obj is NewChapter {
-  return obj && typeof obj.chapter === 'number';
-}
 // Função genérica para buscar dados de um site
 export async function fetchMangasFromSite(url: string, parseFunction: (data: string) => ScrapedManga[], source: string): Promise<ScrapedManga[]> {
   const { data } = await axios.get(url, {
@@ -133,7 +123,6 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
 
   const notifications = [];
   const userMangas = await db.manga.findMany(); // Busca os mangás que o usuário acompanha
-
   for (const manga of userMangas) {
     // Buscar um possível match com base no nome e no nome alternativo (secondName)
     const nameMatch = fuse.search(manga.name.toLowerCase());
@@ -157,31 +146,29 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
         : undefined;
 
     // Se encontrar um mangá correspondente
-    if (matchingManga) {
+    if (matchingManga && matchingManga.chapter > manga.chapter) {
+      // Definir o objeto que será salvo em `newChapter`
       const newChapterData = {
         chapter: matchingManga.chapter,
-        source: matchingManga.source, // Inclui a origem do mangá
+        source: matchingManga.source,  // Inclui a origem do manga
         link: matchingManga.link,
       };
 
-      // Verificar se o newChapter.chapter é menor ou nulo
-      if (!manga.newChapter || (isNewChapter(manga.newChapter) && matchingManga.chapter > manga.newChapter.chapter)) {
-        notifications.push({
-          mangaName: manga.name,
-          currentChapter: manga.chapter,
-          newChapter: newChapterData, // Agora `newChapter` é um objeto com número e origem
-          link: matchingManga.link,
-        });
-      
-        // Atualizar o banco de dados para indicar que há um novo capítulo
-        await db.manga.update({
-          where: { id: manga.id },
-          data: {
-            hasNewChapter: true,
-            newChapter: newChapterData, // Salvar o objeto com capítulo e origem
-          },
-        });
-      }
+      notifications.push({
+        userId: manga.userId,
+        mangaName: manga.name,
+        currentChapter: manga.chapter,
+        newChapter: newChapterData,  // Agora `newChapter` é um objeto com número e origem
+        link: matchingManga.link,
+      });
+      // Atualizar o banco de dados para indicar que há um novo capítulo
+      await db.manga.update({
+        where: { id: manga.id },
+        data: { 
+          hasNewChapter: true, 
+          newChapter: newChapterData,  // Salvar o objeto com capítulo e origem
+        },
+      });
     }
   }
 
