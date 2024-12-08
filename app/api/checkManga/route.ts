@@ -11,14 +11,6 @@ interface ScrapedManga {
   chapter: number;
 }
 
-// Interface para o manga no banco de dados
-interface Manga {
-  id: string;
-  name: string;
-  chapter: number;
-  userId: string;
-  hasNewChapter: boolean;
-}
 
 export async function GET() {
   try {
@@ -51,7 +43,7 @@ export async function GET() {
       }
     });
 
-    const notifications: any[] = [];
+    const notifications = [];
     const userMangas = await db.manga.findMany();
     
     // Comparar os mangás do usuário com os resultados da API
