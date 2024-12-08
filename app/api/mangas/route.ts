@@ -1,0 +1,38 @@
+import { deduplicateMangas, processMangas } from "@/lib/fetchManga";
+import { NextResponse } from "next/server";
+
+export async function GET(request: Request) {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
+                    `${request.headers.get("origin")}`; // Fallback para o host atual
+
+    // Rotas de scraping individuais
+    const endpoints = [
+      `${baseUrl}/api/mangas/seitacelestial`,
+      `${baseUrl}/api/mangas/sussy`,
+    ];
+
+    // Scraping de cada rota em paralelo
+    const results = await Promise.all(
+      endpoints.map((endpoint) =>
+        fetch(endpoint)
+          .then((res) => res.json())
+          .catch((err) => {
+            console.error(`Erro ao buscar ${endpoint}:`, err);
+            return { mangas: [] }; // Retorna vazio em caso de erro
+          })
+      )
+    );
+
+    // Consolidar todos os mangas
+    const allMangas = results.flatMap((result) => result.mangas);
+    const uniqueMangas = deduplicateMangas(allMangas);
+
+    // Processar mangás únicos e gerar notificações
+    const notifications = await processMangas(uniqueMangas);
+    return NextResponse.json({ mangas: notifications }, { status: 200 });
+  } catch (error) {
+    console.error("Erro ao consolidar mangas:", error);
+    return NextResponse.json({ error: "Erro no servidor." }, { status: 500 });
+  }
+}
