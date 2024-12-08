@@ -1,89 +1,55 @@
-import { db } from "@/lib/db";
-import axios from "axios";
-import * as cheerio from "cheerio";
+import { deduplicateMangas, fetchMangasFromSite, parseLerMangas, parseOldiSussytoons, parseSeitaCelestial, parseSlimeRead, processMangas } from "@/lib/fetchManga";
 import { NextResponse } from "next/server";
-import Fuse from "fuse.js"; // Importando o Fuse.js
-
-// Interface para o manga retornado da API (scraping)
 interface ScrapedManga {
   title: string;
   link: string;
   type?: string;
   chapter: number;
 }
-
+// Handler principal para a rota GET
 export async function GET() {
   try {
-    // URL do site alvo
-    const url = `https://seitacelestial.com/`;
-    const { data } = await axios.get(url);
-    const $ = cheerio.load(data);
+    const allScrapedMangas: ScrapedManga[] = [];
 
-    const results: ScrapedManga[] = [];
-
-    // Seleciona os elementos com a classe "bsx" dentro da estrutura "bixbox"
-    $(".bixbox .bsx").each((i, el) => {
-      // Extrai o título do mangá
-      const title = $(el).find("a").attr("title")?.trim();
-
-      // Extrai o link para o mangá
-      const link = $(el).find("a").attr("href");
-
-      // Extrai o tipo (Manhwa, Manhua, Manga, etc.)
-      const type = $(el).find(".type").text()?.trim();
-
-      // Extrai o número do capítulo como texto
-      const chapterText = $(el).find(".epxs").text()?.trim();
-      // Usa expressão regular para capturar apenas os números no texto
-      const chapter = chapterText ? parseInt(chapterText.match(/\d+/)?.[0] ?? "0", 10) : 0;
-
-      // Adiciona ao resultado apenas se o título e o link existirem
-      if (title && link) {
-        results.push({ title, link, type, chapter });
-      }
-    });
-
-    // Configuração do Fuse.js para comparar os títulos
-    const fuse = new Fuse(results, {
-      keys: ["title"],
-      threshold: 0.1, // Define a tolerância para o match. 0.3 significa até 70% de similaridade
-      includeScore: true,
-    });
-
-    const notifications = [];
-    const userMangas = await db.manga.findMany();
-
-    // Comparar os mangás do usuário com os resultados da API
-    for (const manga of userMangas) {
-      // Buscar um possível match com base no nome e no nome alternativo (secondName)
-      const nameMatch = fuse.search(manga.name.toLowerCase());
-      const secondNameMatch = manga.secondName ? fuse.search(manga.secondName.toLowerCase()) : [];
-
-      const matchingManga = nameMatch.length > 0
-        ? results.find(item => item.title.toLowerCase() === nameMatch[0].item.title.toLowerCase())
-        : secondNameMatch.length > 0
-        ? results.find(item => item.title.toLowerCase() === secondNameMatch[0].item.title.toLowerCase())
-        : undefined;
-
-      // Verificar se existe um capítulo mais recente
-      if (matchingManga && matchingManga.chapter > manga.chapter) {
-        notifications.push({
-          userId: manga.userId,
-          mangaName: manga.name,
-          currentChapter: manga.chapter,
-          newChapter: matchingManga.chapter,
-          link: matchingManga.link,
-        });
-
-        // Atualizar o campo "hasNewChapter" no banco de dados
-        await db.manga.update({
-          where: { id: manga.id },
-          data: { hasNewChapter: true },
-        });
-      }
+    // Fontes: Seita Celestial (Página 1 e Página 2)
+    const seitaCelestialUrls = [
+      `https://seitacelestial.com/comics/?page=2&order=update`,
+      `https://seitacelestial.com/comics/?page=1&order=update`
+    ];
+/*
+    // Fazer o scrape das duas páginas
+    for (const url of seitaCelestialUrls) {
+      const seitaMangas = await fetchMangasFromSite(url, parseSeitaCelestial);
+      allScrapedMangas.push(...seitaMangas);
     }
 
-    return NextResponse.json({ message: "Novos mangás atualizados com sucesso." }, { status: 200 });
+    // Fonte: Ler Mangás
+    const lerMangasUrl = `https://lermangas.me/`;
+    const lerMangas = await fetchMangasFromSite(lerMangasUrl, parseLerMangas);
+    allScrapedMangas.push(...lerMangas);
+
+    // URL do site Oldi Sussytoons
+    const oldiSussytoonsUrl = `https://oldi.sussytoons.site/`;
+    const oldiMangas = await fetchMangasFromSite(oldiSussytoonsUrl, parseOldiSussytoons);
+    allScrapedMangas.push(...oldiMangas);
+
+    // URL do site imperiodabritania
+    const imperoBritaniaUrl = `https://imperiodabritannia.com/`;
+    const imperioMangas = await fetchMangasFromSite(imperoBritaniaUrl, parseOldiSussytoons); // USANDO PARSE DA SUSSY POIS É IGUAL O HTML
+    allScrapedMangas.push(...imperioMangas);
+*/
+    // URL do site imperiodabritania
+    const slimeReadUrl = `https://slimeread.com/`;
+    const slimeReadMangas = await fetchMangasFromSite(slimeReadUrl, parseSlimeRead); // USANDO PARSE DA SUSSY POIS É IGUAL O HTML
+    allScrapedMangas.push(...slimeReadMangas);
+
+    // Remover duplicatas baseando-se no título (ignorar maiúsculas/minúsculas)
+    const uniqueMangas = deduplicateMangas(allScrapedMangas);
+
+    // Processar mangás únicos e gerar notificações
+    const notifications = await processMangas(uniqueMangas);
+
+    return NextResponse.json({ message: "Novos mangás atualizados com sucesso.", notifications }, { status: 200 });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Erro ao buscar capítulos." }, { status: 500 });
