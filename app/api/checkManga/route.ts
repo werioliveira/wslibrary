@@ -1,15 +1,24 @@
-import checkForUpdates from "@/lib/cron";
+import { db } from "@/lib/db";
 import axios from "axios";
 import * as cheerio from "cheerio";
-import {NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-interface Manga {
+// Interface para o manga retornado da API (scraping)
+interface ScrapedManga {
   title: string;
   link: string;
   type?: string;
   chapter: number;
 }
 
+// Interface para o manga no banco de dados
+interface Manga {
+  id: string;
+  name: string;
+  chapter: number;
+  userId: string;
+  hasNewChapter: boolean;
+}
 
 export async function GET() {
   try {
@@ -18,7 +27,7 @@ export async function GET() {
     const { data } = await axios.get(url);
     const $ = cheerio.load(data);
 
-    const results = [<Manga>{}];
+    const results: ScrapedManga[] = [];
 
     // Seleciona os elementos com a classe "bsx" dentro da estrutura "bixbox"
     $(".bixbox .bsx").each((i, el) => {
@@ -41,9 +50,33 @@ export async function GET() {
         results.push({ title, link, type, chapter });
       }
     });
-    await checkForUpdates(results);
 
-    return NextResponse.json(results, { status: 200 });
+    const notifications: any[] = [];
+    const userMangas = await db.manga.findMany();
+    
+    // Comparar os mangás do usuário com os resultados da API
+    for (const manga of userMangas) {
+      const matchingManga = results.find((item) =>
+        item.title.toLowerCase() === manga.name.toLowerCase()
+      );
+      if (matchingManga && matchingManga.chapter > manga.chapter) {
+        notifications.push({
+          userId: manga.userId,
+          mangaName: manga.name,
+          currentChapter: manga.chapter,
+          newChapter: matchingManga.chapter,
+          link: matchingManga.link,
+        });
+
+        // Atualizar o campo "hasNewChapter" no banco de dados
+        await db.manga.update({
+          where: { id: manga.id },
+          data: { hasNewChapter: true },
+        });
+      }
+    }
+
+    return NextResponse.json({ message: "Novos mangás atualizados com sucesso." }, { status: 200 });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Erro ao buscar capítulos." }, { status: 500 });
