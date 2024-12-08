@@ -146,36 +146,43 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
           )
         : undefined;
 
-    // Se encontrar um mangá correspondente com um capítulo mais recente
-    if (matchingManga && matchingManga.chapter > manga.chapter) {
-      // Definir o objeto que será salvo em `newChapter`
+    // Se encontrar um mangá correspondente
+    if (matchingManga) {
       const newChapterData = {
         chapter: matchingManga.chapter,
-        source: matchingManga.source,  // Inclui a origem do manga
+        source: matchingManga.source, // Inclui a origem do mangá
         link: matchingManga.link,
       };
 
-      notifications.push({
-        userId: manga.userId,
-        mangaName: manga.name,
-        currentChapter: manga.chapter,
-        newChapter: newChapterData,  // Agora `newChapter` é um objeto com número e origem
-        link: matchingManga.link,
-      });
+      // Verificar se o newChapter.chapter é menor ou nulo
+      if (
+        !manga.newChapter ||
+        matchingManga.chapter > manga.newChapter.chapter
+      ) {
+        notifications.push({
+          userId: manga.userId,
+          mangaName: manga.name,
+          currentChapter: manga.chapter,
+          newChapter: newChapterData, // Agora `newChapter` é um objeto com número e origem
+          link: matchingManga.link,
+        });
 
-      // Atualizar o banco de dados para indicar que há um novo capítulo
-      await db.manga.update({
-        where: { id: manga.id },
-        data: { 
-          hasNewChapter: true, 
-          newChapter: newChapterData,  // Salvar o objeto com capítulo e origem
-        },
-      });
+        // Atualizar o banco de dados para indicar que há um novo capítulo
+        await db.manga.update({
+          where: { id: manga.id },
+          data: {
+            hasNewChapter: true,
+            newChapter: newChapterData, // Salvar o objeto com capítulo e origem
+          },
+        });
+      }
     }
   }
 
   return notifications; // Retorna as notificações geradas
 }
+
+
 
 
 // Função para deduplicar mangás baseando-se no título
