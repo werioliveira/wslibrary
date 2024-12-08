@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import axios from "axios";
 import * as cheerio from "cheerio";
 import { NextResponse } from "next/server";
+import Fuse from "fuse.js"; // Importando o Fuse.js
 
 // Interface para o manga retornado da API (scraping)
 interface ScrapedManga {
@@ -10,7 +11,6 @@ interface ScrapedManga {
   type?: string;
   chapter: number;
 }
-
 
 export async function GET() {
   try {
@@ -43,19 +43,29 @@ export async function GET() {
       }
     });
 
+    // Configuração do Fuse.js para comparar os títulos
+    const fuse = new Fuse(results, {
+      keys: ["title"],
+      threshold: 0.3, // Define a tolerância para o match. 0.3 significa até 70% de similaridade
+      includeScore: true,
+    });
+
     const notifications = [];
     const userMangas = await db.manga.findMany();
-    
+
     // Comparar os mangás do usuário com os resultados da API
     for (const manga of userMangas) {
-        const matchingManga = results.find((item) => {
-            const lowerCaseTitle = item.title.toLowerCase();
-            const lowerCaseName = manga.name.toLowerCase();
-            const lowerCaseSecondName = manga.secondName?.toLowerCase();
-          
-            // Verifica se o título do mangá corresponde ao nome ou ao nome alternativo
-            return lowerCaseTitle === lowerCaseName || lowerCaseTitle === lowerCaseSecondName;
-          });
+      // Buscar um possível match com base no nome e no nome alternativo (secondName)
+      const nameMatch = fuse.search(manga.name.toLowerCase());
+      const secondNameMatch = manga.secondName ? fuse.search(manga.secondName.toLowerCase()) : [];
+
+      const matchingManga = nameMatch.length > 0
+        ? results.find(item => item.title.toLowerCase() === nameMatch[0].item.title.toLowerCase())
+        : secondNameMatch.length > 0
+        ? results.find(item => item.title.toLowerCase() === secondNameMatch[0].item.title.toLowerCase())
+        : undefined;
+
+      // Verificar se existe um capítulo mais recente
       if (matchingManga && matchingManga.chapter > manga.chapter) {
         notifications.push({
           userId: manga.userId,
