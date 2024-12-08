@@ -23,6 +23,7 @@ interface Manga {
   linkToWebsite: string;
   status: string;
   website: string;
+  hasNewChapter: boolean;
 }
 
 export default function MangaPage({
@@ -38,7 +39,6 @@ export default function MangaPage({
   const [isUpdating, setIsUpdating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<Manga | null>(null);
-
   const route = useRouter();
   useEffect(() => {
     const fetchManga = async () => {
@@ -246,10 +246,11 @@ export default function MangaPage({
                     >
                       Mark Next Chapter as Read
                     </Button>
+
                     <Button
                       onClick={markAsRead}
                       className="w-full bg-zinc-800 hover:bg-zinc-700"
-                      disabled={isUpdating}
+                      disabled={isUpdating || !manga.hasNewChapter}
                     >
                       {isUpdating ? "Updating..." : "Mark as Read"}
                     </Button>
