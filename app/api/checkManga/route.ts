@@ -1,5 +1,7 @@
-import { deduplicateMangas, fetchMangasFromSite, parseLerMangas, parseOldiSussytoons, parseSeitaCelestial, processMangas } from "@/lib/fetchManga";
+import { deduplicateMangas, fetchMangasFromSite, parseSeitaCelestial, processMangas } from "@/lib/fetchManga";
 import { NextResponse } from "next/server";
+
+// Interface para o manga retornado da API (scraping)
 interface ScrapedManga {
   title: string;
   link: string;
@@ -32,7 +34,7 @@ export async function GET() {
       const seitaMangas = await fetchMangasFromSite(url, parseSeitaCelestial, 'Seita Celestial');
       allScrapedMangas.push(...seitaMangas);
     }
-
+/*
     // Fonte: Ler Mangás
     const lerMangasUrl = `https://lermangas.me/`;
     const lerMangas = await fetchMangasFromSite(lerMangasUrl, parseLerMangas, 'Ler Mangás');
@@ -47,7 +49,7 @@ export async function GET() {
     const imperoBritaniaUrl = `https://imperiodabritannia.com/`;
     const imperioMangas = await fetchMangasFromSite(imperoBritaniaUrl, parseOldiSussytoons, 'Impero Britânia');
     allScrapedMangas.push(...imperioMangas);
-
+*/
     // Remover duplicatas baseando-se no título (ignorar maiúsculas/minúsculas)
     const uniqueMangas = deduplicateMangas(allScrapedMangas);
 

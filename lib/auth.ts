@@ -16,7 +16,7 @@ export const { handlers: { GET, POST }, signIn, signOut, auth } = NextAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       authorization: {
         params: {
-          access_type: "offline",
+
           response_type: "code"
         }
       }
