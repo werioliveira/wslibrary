@@ -1,6 +1,6 @@
 import { deduplicateMangas, fetchMangasFromSite, parseLerMangas, parseOldiSussytoons, parseSeitaCelestial, processMangas } from "@/lib/fetchManga";
 import { NextResponse } from "next/server";
-export const maxDuration = 20; // This function can run for a maximum of 5 seconds
+export const maxDuration = 30; // This function can run for a maximum of 5 seconds
 export const dynamic = 'force-dynamic';
 
 // Interface para o manga retornado da API (scraping)
