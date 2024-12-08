@@ -8,21 +8,31 @@ export async function GET() {
     // Rotas de scraping individuais
     const endpoints = [
       `${baseUrl}/api/mangas/seitacelestial`,
-      //`${baseUrl}/api/mangas/sussy`,
+      `${baseUrl}/api/mangas/sussy`,
       `${baseUrl}/api/mangas/lermangas`,
     ];
 
-    // Scraping de cada rota em paralelo
-    const results = await Promise.all(
-      endpoints.map((endpoint) =>
-        fetch(endpoint)
-          .then((res) => res.json())
-          .catch((err) => {
-            console.error(`Erro ao buscar ${endpoint}:`, err);
-            return { mangas: [] }; // Retorna vazio em caso de erro
-          })
-      )
-    );
+ // Scraping de cada rota em paralelo
+const results = await Promise.all(
+    endpoints.map(async (endpoint) => {
+      try {
+        const res = await fetch(endpoint);
+        // Verifica se a resposta foi bem-sucedida (status 200)
+        if (!res.ok) {
+          throw new Error(`Falha na requisição: ${res.statusText}`);
+        }
+        const data = await res.json();
+        // Verifica se o formato da resposta é válido
+        if (!data || !Array.isArray(data.mangas)) {
+          throw new Error(`Formato de dados inválido em ${endpoint}`);
+        }
+        return data;
+      } catch (err) {
+        console.log(`Erro ao buscar ${endpoint}:`, err);
+        return { mangas: [] }; // Retorna vazio em caso de erro
+      }
+    })
+  );
 
     // Consolidar todos os mangas
     const allMangas = results.flatMap((result) => result.mangas);
