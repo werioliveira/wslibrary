@@ -11,6 +11,16 @@ interface ScrapedManga {
   chapter: number;
   source?: string;
 }
+type NewChapter = {
+  chapter: number;
+  source: string;
+  link: string;
+};
+
+// Adicione uma verificação de tipo
+function isNewChapter(obj: any): obj is NewChapter {
+  return obj && typeof obj.chapter === 'number';
+}
 // Função genérica para buscar dados de um site
 export async function fetchMangasFromSite(url: string, parseFunction: (data: string) => ScrapedManga[], source: string): Promise<ScrapedManga[]> {
   const { data } = await axios.get(url, {
@@ -155,10 +165,7 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
       };
 
       // Verificar se o newChapter.chapter é menor ou nulo
-      if (
-        !manga.newChapter ||
-        matchingManga.chapter > manga.newChapter.chapter
-      ) {
+      if (!manga.newChapter || (isNewChapter(manga.newChapter) && matchingManga.chapter > manga.newChapter.chapter)) {
         notifications.push({
           userId: manga.userId,
           mangaName: manga.name,
@@ -166,7 +173,7 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
           newChapter: newChapterData, // Agora `newChapter` é um objeto com número e origem
           link: matchingManga.link,
         });
-
+      
         // Atualizar o banco de dados para indicar que há um novo capítulo
         await db.manga.update({
           where: { id: manga.id },
