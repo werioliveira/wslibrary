@@ -8,7 +8,7 @@ export async function GET() {
     // Rotas de scraping individuais
     const endpoints = [
       `${baseUrl}/api/mangas/seitacelestial`,
-      `${baseUrl}/api/mangas/sussy`,
+     // `${baseUrl}/api/mangas/sussy`,
       //`${baseUrl}/api/mangas/lermangas`,
     ];
 
