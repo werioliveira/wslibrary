@@ -88,18 +88,19 @@ export function MangaCard({
 </div>
 
 
-      <div className="flex justify-between items-end mt-2">
-        <div>
-          <span className="text-xs text-zinc-400 block">Cap. {chapter}</span>
-          <span className="text-xs text-emerald-500 truncate block">Fonte. {website}</span>
-        </div>
-        {hasNewChapter && (
-          <div className="text-right">
-            <span className="text-xs text-amber-400 block">New Chapter. {newChapter?.chapter}</span>
-            <span className="text-xs text-sky-500 block">Fonte. {newChapter?.source}</span>
-          </div>
-        )}
-      </div>
+<div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mt-2">
+  <div>
+    <span className="text-xs text-zinc-400 block">Cap. {chapter}</span>
+    <span className="text-xs text-emerald-500 truncate block">Fonte. {website}</span>
+  </div>
+  
+  {hasNewChapter && (
+    <div className="mt-2 sm:mt-0 sm:text-right">
+      <span className="text-xs text-amber-400 block">New Chapter. {newChapter?.chapter}</span>
+      <span className="text-xs text-sky-500 block">Fonte. {newChapter?.source}</span>
+    </div>
+  )}
+</div>
     </CardContent>
       </Card>
     </Link>
