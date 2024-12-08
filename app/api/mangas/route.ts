@@ -9,7 +9,7 @@ export async function GET() {
     const endpoints = [
       `${baseUrl}/api/mangas/seitacelestial`,
       `${baseUrl}/api/mangas/sussy`,
-      `${baseUrl}/api/mangas/lermangas`,
+      //`${baseUrl}/api/mangas/lermangas`,
     ];
 
  // Scraping de cada rota em paralelo
