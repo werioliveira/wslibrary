@@ -26,14 +26,14 @@ export async function GET() {
     const allScrapedMangas: ScrapedManga[] = [];
     
     // Repetir a abordagem para outras fontes
-    const [seitaMangas, oldiMangas] = await Promise.all([
+    const [seitaMangas, oldiMangas, imperioMangas, lerMangas] = await Promise.all([
       fetchMangasFromSite(`https://seitacelestial.com/comics/?page=1&order=update`, parseSeitaCelestial, 'Seita Celestial'),
       fetchMangasFromSite(`https://lermangas.me/`, parseLerMangas, 'Ler Mangás'),
       fetchMangasFromSite(`https://oldi.sussytoons.site/`, parseOldiSussytoons, 'Sussy'),
       fetchMangasFromSite(`https://imperiodabritannia.com/`, parseOldiSussytoons, 'Impero Britânia'),
     ]);
     
-    allScrapedMangas.push(...seitaMangas, ...oldiMangas);
+    allScrapedMangas.push(...seitaMangas, ...oldiMangas, ...imperioMangas, ...lerMangas);
     
 
     // Remover duplicatas baseando-se no título (ignorar maiúsculas/minúsculas)
