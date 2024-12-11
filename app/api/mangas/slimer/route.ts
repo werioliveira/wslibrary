@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { fetchMangasFromSite, parseOldiSussytoons, parseSlimeread } from "@/lib/fetchManga";
+import { fetchMangasFromSite, parseSlimeread } from "@/lib/fetchManga";
 
 export async function GET() {
   try {
