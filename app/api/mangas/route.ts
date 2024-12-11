@@ -11,6 +11,7 @@ export async function GET() {
       `${baseUrl}/api/mangas/sussy`,
       `${baseUrl}/api/mangas/imperio`,
       `${baseUrl}/api/mangas/lermangas`,
+      `${baseUrl}/api/mangas/slimer`,	
     ];
 
     // Scraping paralelo com exclusão de endpoints falhos

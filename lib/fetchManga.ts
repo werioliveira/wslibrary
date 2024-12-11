@@ -76,7 +76,42 @@ export function parseLerMangas(html: string): ScrapedManga[] {
   });
   return results;
 }
+// Função específica para parsing do site Slimeread
+export function parseSlimeread(html: string): ScrapedManga[] {
+  const $ = cheerio.load(html);
+  const results: ScrapedManga[] = [];
 
+  // Seleciona os elementos que representam mangás
+  const mangaElements = $(".group.relative.transition-all");
+
+  // Processa cada mangá individualmente
+  mangaElements.each((i, el) => {
+    // Extrai o título do mangá
+    const title = $(el)
+      .find("a[aria-label]")
+      .text()
+      ?.trim();
+
+    // Extrai o link do mangá
+    const link = $(el).find("a[aria-label]").attr("href")?.trim();
+
+    // Extrai o capítulo mais recente
+    const chapterText = $(el)
+      .find(".mt-2 a.text-xs")
+      .text()
+      ?.trim();
+    const chapter = chapterText
+      ? parseInt(chapterText.match(/\d+/)?.[0] ?? "0", 10)
+      : 0;
+
+    // Adiciona ao resultado se o título e link existirem
+    if (title && link) {
+      results.push({ title, link: `https://slimeread.com${link}`, chapter });
+    }
+  });
+
+  return results;
+}
 export function parseOldiSussytoons(html: string): ScrapedManga[] {
   const $ = cheerio.load(html);
   const results: ScrapedManga[] = [];
