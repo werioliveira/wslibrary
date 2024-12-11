@@ -28,7 +28,7 @@ export async function GET() {
           }
           return data;
         } catch (err) {
-
+          console.log(`Erro ao buscar ${endpoint}:`, err);
           return null; // Ignora o endpoint em caso de erro
         }
       })
