@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { fetchMangasFromSite, parseLerMangas } from "@/lib/fetchManga";
+
 import puppeteer from 'puppeteer';
 // Tipo para o ScrapedManga
 type ScrapedManga = {
