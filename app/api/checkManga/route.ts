@@ -28,6 +28,7 @@ export async function GET() {
     // Repetir a abordagem para outras fontes
     const [seitaMangas, oldiMangas, imperioMangas, lerMangas] = await Promise.all([
       fetchMangasFromSite(`https://seitacelestial.com/comics/?page=1&order=update`, parseSeitaCelestial, 'Seita Celestial'),
+      fetchMangasFromSite(`https://seitacelestial.com/comics/?page=2&order=update`, parseSeitaCelestial, 'Seita Celestial'),
       fetchMangasFromSite(`https://lermangas.me/`, parseLerMangas, 'Ler Mangás'),
       fetchMangasFromSite(`https://oldi.sussytoons.site/`, parseOldiSussytoons, 'Sussy'),
       fetchMangasFromSite(`https://imperiodabritannia.com/`, parseOldiSussytoons, 'Impero Britânia'),

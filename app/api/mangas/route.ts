@@ -3,13 +3,13 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const baseUrl = "https://wslibrary.werioliveira.site";
+    const baseUrl = "http://localhost:3002";
 
     // Rotas de scraping individuais
     const endpoints = [
       `${baseUrl}/api/mangas/seitacelestial`,
-     // `${baseUrl}/api/mangas/sussy`,
-      //`${baseUrl}/api/mangas/lermangas`,
+      `${baseUrl}/api/mangas/sussy`,
+      `${baseUrl}/api/mangas/lermangas`,
     ];
 
  // Scraping de cada rota em paralelo
