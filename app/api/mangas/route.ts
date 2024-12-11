@@ -3,42 +3,45 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const baseUrl = "http://localhost:3002";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
     // Rotas de scraping individuais
     const endpoints = [
       `${baseUrl}/api/mangas/seitacelestial`,
       `${baseUrl}/api/mangas/sussy`,
+      `${baseUrl}/api/mangas/imperio`,
       `${baseUrl}/api/mangas/lermangas`,
     ];
 
- // Scraping de cada rota em paralelo
-const results = await Promise.all(
-    endpoints.map(async (endpoint) => {
-      try {
-        const res = await fetch(endpoint);
-        // Verifica se a resposta foi bem-sucedida (status 200)
-        if (!res.ok) {
-          throw new Error(`Falha na requisição: ${res.statusText}`);
-        }
-        const data = await res.json();
-        // Verifica se o formato da resposta é válido
-        if (!data || !Array.isArray(data.mangas)) {
-          throw new Error(`Formato de dados inválido em ${endpoint}`);
-        }
-        return data;
-      } catch (err) {
-        console.log(`Erro ao buscar ${endpoint}:`, err);
-        return { mangas: [] }; // Retorna vazio em caso de erro
-      }
-    })
-  );
+    // Scraping paralelo com exclusão de endpoints falhos
+    const results = await Promise.all(
+      endpoints.map(async (endpoint) => {
+        try {
+          const res = await fetch(endpoint);
+          if (!res.ok) {
+            return null; // Ignora o endpoint
+          }
+          const data = await res.json();
+          if (!data || !Array.isArray(data.mangas)) {
 
-    // Consolidar todos os mangas
-    const allMangas = results.flatMap((result) => result.mangas);
+            return null; // Ignora o endpoint
+          }
+          return data;
+        } catch (err) {
+
+          return null; // Ignora o endpoint em caso de erro
+        }
+      })
+    );
+
+    // Remove resultados nulos
+    const validResults = results.filter((result) => result !== null);
+
+    // Consolida todos os mangas
+    const allMangas = validResults.flatMap((result) => result.mangas);
     const uniqueMangas = deduplicateMangas(allMangas);
 
-    // Processar mangás únicos e gerar notificações
+    // Processa mangás únicos
     const notifications = await processMangas(uniqueMangas);
     return NextResponse.json({ mangas: notifications }, { status: 200 });
   } catch (error) {
