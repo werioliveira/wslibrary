@@ -14,7 +14,7 @@ export async function GET() {
 
      return NextResponse.json( {mangas} , { status: 200 });
   } catch (error) {
-    //console.error("Erro no scraping Hentai Teca:", error);
+    console.error("Erro no scraping Hentai Teca:", error);
     return NextResponse.json({ error: "Erro ao buscar dados." }, { status: 500 });
   }
 }
