@@ -23,6 +23,27 @@ export async function fetchMangasFromSite(url: string, parseFunction: (data: str
     source,  // Adiciona o nome do site
   }));
 }
+// Função genérica para buscar dados de um site
+export async function fetchMangasFromHteca(url: string, parseFunction: (data: string) => ScrapedManga[], source: string): Promise<ScrapedManga[]> {
+  const { data } = await axios.get(url,{
+    headers: {
+      'User-Agent': 'PostmanRuntime/7.43.0',
+      "Accept": "*/*",
+      'Accept-Encoding': 'gzip, deflate, br',
+      'Connection': 'keep-alive',
+
+
+  }
+  });
+
+  const mangas = parseFunction(data);
+  
+  // Adiciona a origem para cada manga
+  return mangas.map(manga => ({
+    ...manga,
+    source,  // Adiciona o nome do site
+  }));
+}
 
 
 // Função específica para parsing do site Seita Celestial
