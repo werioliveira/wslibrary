@@ -38,11 +38,10 @@ export async function GET() {
 
     // Remove resultados nulos
     const validResults = results.filter((result) => result !== null);
-
     // Consolida todos os mangas
     const allMangas = validResults.flatMap((result) => result.mangas);
-    const uniqueMangas = deduplicateMangas(allMangas);
 
+    const uniqueMangas = deduplicateMangas(allMangas);
     // Processa mangás únicos
     const notifications = await processMangas(uniqueMangas);
     return NextResponse.json({ mangas: notifications }, { status: 200 });

@@ -30,14 +30,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
   }
   export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    const session = await auth()
-
+    const session = await auth();
+  
     if (!session || !session.user || !session.user.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+  
     const { id } = await params;
     const { chapter, name, secondName, image, linkToWebsite, status, website } = await request.json();
-
+  
     try {
       const manga = await db.manga.findUnique({
         where: { id },
@@ -52,16 +53,24 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
   
+      // Determina se deve alterar o campo `hasNewChapter`
+      let hasNewChapter = manga.hasNewChapter; // Valor atual do banco
+      if (hasNewChapter && chapter >= manga.chapter) {
+        hasNewChapter = false; // Atualiza para `false` se a condição for atendida
+      }
+  
+      // Atualiza o mangá com os novos dados
       const updatedManga = await db.manga.update({
         where: { id },
-        data: { name, secondName, image, linkToWebsite, chapter, status, website },
+        data: { name, secondName, image, linkToWebsite, chapter, status, website, hasNewChapter },
       });
   
       return NextResponse.json(updatedManga);
     } catch (error) {
-      return NextResponse.json({ error: "Internal Server Error"+error }, { status: 500 });
+      return NextResponse.json({ error: "Internal Server Error: " + error }, { status: 500 });
     }
-  } 
+  }
+  
   
   export async function DELETE(
     request: Request,

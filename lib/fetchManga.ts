@@ -175,34 +175,24 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
 
   const notifications = [];
   const userMangas = await db.manga.findMany(); // Busca os mangás que o usuário acompanha
+
   for (const manga of userMangas) {
-    // Buscar um possível match com base no nome e no nome alternativo (secondName)
-    const nameMatch = fuse.search(manga.name.toLowerCase());
-    const secondNameMatch = manga.secondName
-      ? fuse.search(manga.secondName.toLowerCase())
-      : [];
+    // Buscar correspondências para `name` e `secondName`
+    const matches = [
+      ...fuse.search(manga.name.toLowerCase()),
+      ...(manga.secondName ? fuse.search(manga.secondName.toLowerCase()) : []),
+    ];
 
-    // Determinar o mangá correspondente baseado nos matches
-    const matchingManga =
-      nameMatch.length > 0
-        ? scrapedMangas.find(
-            (item) =>
-              item.title.toLowerCase() === nameMatch[0].item.title.toLowerCase()
-          )
-        : secondNameMatch.length > 0
-        ? scrapedMangas.find(
-            (item) =>
-              item.title.toLowerCase() ===
-              secondNameMatch[0].item.title.toLowerCase()
-          )
-        : undefined;
+    // Selecionar o melhor match (com menor score)
+    const bestMatch = matches.sort((a, b) => (a.score || 0) - (b.score || 0))[0];
 
-    // Se encontrar um mangá correspondente
-    if (matchingManga && matchingManga.chapter > manga.chapter) {
+    if (bestMatch && bestMatch.item.chapter > manga.chapter) {
+      const matchingManga = bestMatch.item;
+
       // Definir o objeto que será salvo em `newChapter`
       const newChapterData = {
         chapter: matchingManga.chapter,
-        source: matchingManga.source,  // Inclui a origem do manga
+        source: matchingManga.source, // Inclui a origem do manga
         link: matchingManga.link,
       };
 
@@ -210,15 +200,16 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
         userId: manga.userId,
         mangaName: manga.name,
         currentChapter: manga.chapter,
-        newChapter: newChapterData,  // Agora `newChapter` é um objeto com número e origem
+        newChapter: newChapterData, // Agora `newChapter` é um objeto com número e origem
         link: matchingManga.link,
       });
+
       // Atualizar o banco de dados para indicar que há um novo capítulo
       await db.manga.update({
         where: { id: manga.id },
-        data: { 
-          hasNewChapter: true, 
-          newChapter: newChapterData,  // Salvar o objeto com capítulo e origem
+        data: {
+          hasNewChapter: true,
+          newChapter: newChapterData, // Salvar o objeto com capítulo e origem
         },
       });
     }
@@ -226,6 +217,7 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
 
   return notifications; // Retorna as notificações geradas
 }
+
 
 
 
