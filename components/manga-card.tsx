@@ -40,7 +40,7 @@ export function MangaCard({
       <Card className="bg-zinc-950 rounded-xl overflow-hidden transition-all ease-in-out duration-500 group-hover:shadow-lg group-hover:shadow-zinc-800/30 border-zinc-800 flex flex-col h-full">
         <div className="relative pt-[133%] overflow-hidden">
           <img
-            src={image}
+            src={image ? image : "/defaultmanga.webp"}
             alt={name}
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
