@@ -57,12 +57,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       const newChapterData = manga.newChapter as { chapter: number } | null;
       const newChapterNumber = newChapterData?.chapter || 0;
   
-      // Determina se deve alterar o campo `hasNewChapter`
-      let hasNewChapter = manga.hasNewChapter; // Valor atual do banco
-      if (chapter > manga.chapter || newChapterNumber > manga.chapter) {
-        hasNewChapter = true; // Mantém como `true` se o novo capítulo ou `newChapter.chapter` for maior que o atual
-      } else {
-        hasNewChapter = false; // Caso contrário, define como `false`
+      // Atualiza o campo `hasNewChapter` com base na lógica
+      let hasNewChapter = manga.hasNewChapter;
+      if (chapter >= newChapterNumber) {
+        hasNewChapter = false; // Marca como falso se o novo valor for maior ou igual ao `newChapter.chapter`
       }
   
       // Atualiza o mangá com os novos dados
@@ -85,6 +83,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Internal Server Error: " + error }, { status: 500 });
     }
   }
+  
   
   export async function DELETE(
     request: Request,
