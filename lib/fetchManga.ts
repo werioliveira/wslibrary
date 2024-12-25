@@ -207,11 +207,7 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
 
       // Atualizar o banco de dados somente se os dados forem diferentes
       const newChapter = manga.newChapter as unknown as NewChapter;
-      if (
-        newChapter?.chapter !== newChapterData.chapter || 
-        newChapter?.source !== newChapterData.source || 
-        newChapter?.link !== newChapterData.link
-      ) {
+      if (newChapterData.chapter > newChapter?.chapter) {
         await db.manga.update({
           where: { id: manga.id },
           data: {

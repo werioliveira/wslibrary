@@ -18,7 +18,7 @@ export async function createPrivateThread(channelId: string, threadName: string)
         name: threadName,
         type: 12, // Thread privada
         invitable: false,
-        auto_archive_duration: 360, // Expiração em minutos (24 horas)
+        auto_archive_duration: 1440, // Expiração em minutos (24 horas)
       }),
     });
 
