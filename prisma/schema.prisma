@@ -20,6 +20,7 @@ model User {
   hashedPassword String?
   emailVerified  DateTime?
   image          String?
+  discordId      String?         // Discord ID fornecido manualmente pelo usuário
   accounts       Account[]
   sessions       Session[]
   // Optional for WebAuthn support

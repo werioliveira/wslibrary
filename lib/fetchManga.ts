@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import axios from "axios";
 import * as cheerio from "cheerio";
 import Fuse from "fuse.js"; // Importando o Fuse.js
+import { notifyUserAboutNewChapter } from "./mangaNotifications";
 
 // Interface para o manga retornado da API (scraping)
 interface ScrapedManga {
@@ -10,6 +11,11 @@ interface ScrapedManga {
   type?: string;
   chapter: number;
   source?: string;
+}
+interface NewChapter {
+  chapter: number;
+  source: string;
+  link: string;
 }
 // Função genérica para buscar dados de um site
 export async function fetchMangasFromSite(url: string, parseFunction: (data: string) => ScrapedManga[], source: string): Promise<ScrapedManga[]> {
@@ -173,8 +179,11 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
     includeScore: true,
   });
 
-  const notifications = [];
-  const userMangas = await db.manga.findMany(); // Busca os mangás que o usuário acompanha
+  const userMangas = await db.manga.findMany({
+    include: {
+      user: true, // Inclui informações do usuário para obter o Discord ID
+    },
+  });
 
   for (const manga of userMangas) {
     // Buscar correspondências para `name` e `secondName`
@@ -196,26 +205,34 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
         link: matchingManga.link,
       };
 
-      notifications.push({
-        userId: manga.userId,
-        mangaName: manga.name,
-        currentChapter: manga.chapter,
-        newChapter: newChapterData, // Agora `newChapter` é um objeto com número e origem
-        link: matchingManga.link,
-      });
+      // Atualizar o banco de dados somente se os dados forem diferentes
+      const newChapter = manga.newChapter as unknown as NewChapter;
+      if (
+        newChapter?.chapter !== newChapterData.chapter || 
+        newChapter?.source !== newChapterData.source || 
+        newChapter?.link !== newChapterData.link
+      ) {
+        await db.manga.update({
+          where: { id: manga.id },
+          data: {
+            hasNewChapter: true,
+            newChapter: newChapterData, // Salvar o objeto com capítulo e origem
+          },
+        });
 
-      // Atualizar o banco de dados para indicar que há um novo capítulo
-      await db.manga.update({
-        where: { id: manga.id },
-        data: {
-          hasNewChapter: true,
-          newChapter: newChapterData, // Salvar o objeto com capítulo e origem
-        },
-      });
+        // Notificar o usuário via Discord (somente se o Discord ID estiver configurado)
+        if (manga.user.discordId && manga.status == "Lendo") {
+          await notifyUserAboutNewChapter(
+            "961793385721659402", // ID do canal pai no Discord
+            manga.user.discordId, // Discord ID do usuário
+            manga.name, // Nome do mangá
+            matchingManga.chapter, // Novo capítulo
+            matchingManga.link // Link para o capítulo
+          );
+        }
+      }
     }
   }
-
-  return notifications; // Retorna as notificações geradas
 }
 
 

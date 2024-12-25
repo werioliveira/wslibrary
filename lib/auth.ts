@@ -2,10 +2,10 @@ import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { db } from "@/lib/db"
-
+import type { Adapter } from 'next-auth/adapters';
 
 export const { handlers: { GET, POST }, signIn, signOut, auth } = NextAuth({
-  adapter: PrismaAdapter(db),
+  adapter: PrismaAdapter(db) as Adapter,
   session: {
     strategy: 'jwt',  // Usando JWT para a sessão
   },
@@ -27,6 +27,7 @@ export const { handlers: { GET, POST }, signIn, signOut, auth } = NextAuth({
       if (session.user) {
         session.user.image = token.picture as string;
         session.user.id = token.sub as string;
+        session.user.discordId = token.discordId as string;
       }
       return session;
     },
@@ -36,6 +37,7 @@ export const { handlers: { GET, POST }, signIn, signOut, auth } = NextAuth({
       }
       if (user) {
         token.id = user.id; // Adiciona o ID do usuário ao token
+        token.discordId = user.discordId; // Adiciona o Discord ID do usuário ao token
       }
       return token;
     },
