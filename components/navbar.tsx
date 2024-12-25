@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 
 export function Navbar() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const [discordId, setDiscordId] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -30,6 +30,7 @@ export function Navbar() {
       console.error(error);
     } finally {
       setLoading(false);
+      update({discordId: discordId});
     }
   };
 
@@ -66,9 +67,9 @@ export function Navbar() {
                 placeholder="Enter Discord ID"
                 value={discordId}
                 onChange={(e) => setDiscordId(e.target.value)}
-                className="px-2 py-1 border rounded-md"
+                className="px-2 py-1 border rounded-md text-black"
               />
-              <Button
+            <Button variant="secondary" 
                 onClick={handleSaveDiscordId}
                 disabled={loading || !discordId.trim()}
               >

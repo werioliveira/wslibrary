@@ -31,7 +31,7 @@ export const { handlers: { GET, POST }, signIn, signOut, auth } = NextAuth({
       }
       return session;
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, session, trigger }) {
       if (account) {
         token.accessToken = account.access_token;
       }
@@ -39,6 +39,12 @@ export const { handlers: { GET, POST }, signIn, signOut, auth } = NextAuth({
         token.id = user.id; // Adiciona o ID do usuário ao token
         token.discordId = user.discordId; // Adiciona o Discord ID do usuário ao token
       }
+      if (trigger === 'update') {
+        return {
+           ...token,
+           ...session
+         };
+     }
       return token;
     },
   }
