@@ -223,7 +223,7 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
         // Notificar o usuário via Discord (somente se o Discord ID estiver configurado)
         if (manga.user.discordId && manga.status == "Lendo") {
           await notifyUserAboutNewChapter(
-            "961793385721659402", // ID do canal pai no Discord
+            process.env.DISCORD_CHANNEL_ID?? "1321316349234118716", // ID do canal pai no Discord
             manga.user.discordId, // Discord ID do usuário
             manga.name, // Nome do mangá
             matchingManga.chapter, // Novo capítulo
