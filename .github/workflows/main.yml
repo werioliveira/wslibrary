@@ -2,7 +2,7 @@ name: Manga Check Cron Job
 
 on:
   schedule:
-    - cron: '*/15 * * * *' # A cada 15minutos
+    - cron: '*/10 * * * *' # A cada 15minutos
   workflow_dispatch: # Permite a execução manual
 
 jobs:
