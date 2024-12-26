@@ -16,7 +16,7 @@ export async function notifyUserAboutNewChapter(
   newChapter: number,
   link: string
 ) {
-  const threadName = `Novos capítulos: ${mangaName}`;
+  const threadName = `New: ${mangaName}`;
   const threadId = await createPrivateThread(channelId, threadName);
 
   if (!threadId) {
