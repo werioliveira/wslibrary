@@ -191,10 +191,8 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
       ...fuse.search(manga.name.toLowerCase()),
       ...(manga.secondName ? fuse.search(manga.secondName.toLowerCase()) : []),
     ];
-
     // Selecionar o melhor match (com menor score)
     const bestMatch = matches.sort((a, b) => (a.score || 0) - (b.score || 0))[0];
-
     if (bestMatch && bestMatch.item.chapter > manga.chapter) {
       const matchingManga = bestMatch.item;
 
@@ -207,7 +205,7 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
 
       // Atualizar o banco de dados somente se os dados forem diferentes
       const newChapter = manga.newChapter as unknown as NewChapter;
-      if (newChapterData.chapter > newChapter?.chapter) {
+      if (!newChapter || newChapterData.chapter > newChapter.chapter) {
         await db.manga.update({
           where: { id: manga.id },
           data: {
@@ -228,6 +226,8 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
         }
       }
     }
+    
+    return manga;
   }
 }
 
