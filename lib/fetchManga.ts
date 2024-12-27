@@ -202,6 +202,7 @@ export function parserNewSussytoons(html: string): ScrapedManga[] {
         title,
         link,
         chapter,
+        source: "Sussy"
       });
     }
   });
