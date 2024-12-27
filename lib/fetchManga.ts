@@ -170,6 +170,44 @@ export function parseOldiSussytoons(html: string): ScrapedManga[] {
 
   return results;
 }
+export function parserNewSussytoons(html: string): ScrapedManga[] {
+  const $ = cheerio.load(html);
+  const results: ScrapedManga[] = [];
+
+
+  // Itera sobre cada elemento de manga
+  $('.chakra-stack.css-18y9vo3').each((_, mangaElement) => {
+    const element = $(mangaElement);
+
+    // Título do manga
+    const title = element.find('.chakra-text.css-15d8el3').text().trim();
+
+    // Link do manga
+    let link = element.find('.chakra-link.css-1dbs7sg').attr('href')?.trim();
+    link = 'https://new.sussytoons.site' + link;
+    // Imagem do manga
+
+    // Capítulo mais recente
+    const chapterText = element
+      .find('.chakra-text.css-1aakaxo')
+      .first()
+      .text()
+      .trim();
+    const chapter = chapterText ? parseInt(chapterText.match(/\d+/)?.[0] ?? '0', 10) : 0;
+
+
+    // Verifica se o título e link existem antes de adicionar ao resultado
+    if (title && link) {
+      results.push({
+        title,
+        link,
+        chapter,
+      });
+    }
+  });
+  // Retorna os resultados
+  return results;
+}
 
 // Ajuste na função de processamento para incluir a origem do mangá
 export async function processMangas(scrapedMangas: ScrapedManga[]) {
