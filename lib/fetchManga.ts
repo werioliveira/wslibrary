@@ -173,61 +173,71 @@ export function parseOldiSussytoons(html: string): ScrapedManga[] {
 
 // Ajuste na função de processamento para incluir a origem do mangá
 export async function processMangas(scrapedMangas: ScrapedManga[]) {
+  // Ajuste a busca para maior flexibilidade e precisão
   const fuse = new Fuse(scrapedMangas, {
     keys: ["title"],
     threshold: 0.1, // Ajuste a sensibilidade para encontrar correspondências
     includeScore: true,
+    shouldSort: true, // Ordena os resultados por relevância
   });
 
+  // Busca os mangas do banco
   const userMangas = await db.manga.findMany({
     include: {
       user: true, // Inclui informações do usuário para obter o Discord ID
     },
   });
 
+  // Para cada manga do usuário, busque correspondências com o título e subtítulo
   for (const manga of userMangas) {
-    // Buscar correspondências para `name` e `secondName`
+    // Normalize os nomes para comparação
+    const nameToSearch = manga.name.trim().toLowerCase();
+    const secondNameToSearch = manga.secondName ? manga.secondName.trim().toLowerCase() : null;
+
+    // Buscar correspondências usando Fuse.js
     const matches = [
-      ...fuse.search(manga.name.toLowerCase()),
-      ...(manga.secondName ? fuse.search(manga.secondName.toLowerCase()) : []),
+      ...fuse.search(nameToSearch), 
+      ...(secondNameToSearch ? fuse.search(secondNameToSearch) : []),
     ];
-    // Selecionar o melhor match (com menor score)
-    const bestMatch = matches.sort((a, b) => (a.score || 0) - (b.score || 0))[0];
+
+    // Se houver matches, processe o melhor
+    const bestMatch = matches[0]; // Fuse já retorna os resultados ordenados, não é necessário sort()
+    
     if (bestMatch && bestMatch.item.chapter > manga.chapter) {
       const matchingManga = bestMatch.item;
-
-      // Definir o objeto que será salvo em `newChapter`
+      
+      // Preparar os dados do novo capítulo
       const newChapterData = {
         chapter: matchingManga.chapter,
-        source: matchingManga.source, // Inclui a origem do manga
+        source: matchingManga.source,
         link: matchingManga.link,
       };
 
-      // Atualizar o banco de dados somente se os dados forem diferentes
+      // Verificar se há um novo capítulo
       const newChapter = manga.newChapter as unknown as NewChapter;
       if (!newChapter || newChapterData.chapter > newChapter.chapter) {
+
+        // Atualiza o banco de dados com o novo capítulo
         await db.manga.update({
           where: { id: manga.id },
           data: {
             hasNewChapter: true,
-            newChapter: newChapterData, // Salvar o objeto com capítulo e origem
+            newChapter: newChapterData,
           },
         });
 
-        // Notificar o usuário via Discord (somente se o Discord ID estiver configurado)
-        if (manga.user.discordId && manga.status == "Lendo") {
+        // Notificar o usuário no Discord se o usuário estiver "Lendo"
+        if (manga.user.discordId && manga.status === "Lendo") {
           await notifyUserAboutNewChapter(
-            process.env.DISCORD_CHANNEL_ID?? "1321316349234118716", // ID do canal pai no Discord
-            manga.user.discordId, // Discord ID do usuário
-            manga.name, // Nome do mangá
-            matchingManga.chapter, // Novo capítulo
-            matchingManga.link // Link para o capítulo
+            process.env.DISCORD_CHANNEL_ID ?? "1321316349234118716",
+            manga.user.discordId,
+            manga.name,
+            matchingManga.chapter,
+            matchingManga.link
           );
         }
       }
     }
-    
-    return manga;
   }
 }
 
