@@ -2,14 +2,21 @@ import { NextResponse } from "next/server";
 
 
 export async function GET() {
-  try {
-      const mangas = await fetch('https://api-dev.sussytoons.site/obras/novos-capitulos?pagina=1&limite=24')
-      console.log(mangas)
-      return NextResponse.json(mangas, { status: 200 });
-  } catch (error) {
-    console.error('Scraping error:', error);
-    return NextResponse.json({ error:'Scraping error:' }, { status: 500 });
+  const apiUrl = 'https://api-dev.sussytoons.site/obras/novos-capitulos?pagina=1&limite=24';
 
+  try {
+    const response = await fetch(apiUrl, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Scan-id': '1', // Se necessário
+      },
+    });
+
+    const data = await response.json();
+    return NextResponse.json(data, { status: 200 });
+  } catch (error) {
+    console.log('Error:', error);
+    return NextResponse.json({ error: 'Erro ao acessar a API' }, { status: 500 });
   }
   /*
   
