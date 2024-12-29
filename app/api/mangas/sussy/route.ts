@@ -1,8 +1,18 @@
 import { NextResponse } from "next/server";
-import { parserNewSussytoons } from "@/lib/fetchManga";
-import puppeteer from "puppeteer";
+
 
 export async function GET() {
+  try {
+      const mangas = await fetch('https://api-dev.sussytoons.site/obras/novos-capitulos?pagina=1&limite=24')
+      console.log(mangas)
+      return NextResponse.json(mangas, { status: 200 });
+  } catch (error) {
+    console.error('Scraping error:', error);
+    return NextResponse.json({ error:'Scraping error:' }, { status: 500 });
+
+  }
+  /*
+  
   try {
     const browser = await puppeteer.launch({
       headless: true,
@@ -27,5 +37,5 @@ export async function GET() {
     return NextResponse.json({ error:'Scraping error:' }, { status: 500 });
 
   }
-
+  */
 }
