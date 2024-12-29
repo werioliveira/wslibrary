@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   const apiUrl = 'https://api-dev.sussytoons.site/obras/novos-capitulos?pagina=1&limite=24';
-
+ 
   try {
     const response = await fetch(apiUrl, {
       headers: {
@@ -11,9 +11,21 @@ export async function GET() {
         'Scan-id': '1', // Se necessário
       },
     });
-
+    const baseUrl= "https://new.sussytoons.site";
     const data = await response.json();
-    return NextResponse.json(data, { status: 200 });
+// Transformar a resposta da API no formato desejado
+    const formattedResponse = {
+      mangas: data.resultados.map((obra: any) => {
+        const latestChapter = obra.ultimos_capitulos[0]; // Pega o último capítulo
+        return {
+          title: obra.obr_nome,
+          link: `${baseUrl}${obra.obr_slug}/`,
+          chapter: latestChapter.cap_numero,
+          source: "New Sussy",
+        };
+      }),
+    };
+    return NextResponse.json(formattedResponse, { status: 200 });
   } catch (error) {
     console.log('Error:', error);
     return NextResponse.json({ error: 'Erro ao acessar a API' }, { status: 500 });
