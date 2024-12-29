@@ -13,7 +13,7 @@ export async function GET() {
     await page.goto('https://new.sussytoons.site/', { waitUntil: 'networkidle2' });
 
     // Aguarde até que um seletor específico esteja disponível, caso necessário
-    await page.waitForSelector('.css-r8mu0h'); // Substitua pelo seletor relevante
+    await page.waitForSelector('.css-r8mu0h',{ timeout: 30000 }); // Substitua pelo seletor relevante
 
     // Extraia o HTML renderizado
     const content = await page.content();
