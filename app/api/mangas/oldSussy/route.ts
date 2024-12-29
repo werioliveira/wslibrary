@@ -5,7 +5,8 @@ export async function GET() {
     try {
       // URLs para scraping
       const urls = [
-        `https://oldi.sussytoons.site/`,
+        `https://oldi.sussytoons.site/page/1/`,
+        `https://oldi.sussytoons.site/page/2/`
       ];
   
       // Realizar o scraping diretamente

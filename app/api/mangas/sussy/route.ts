@@ -1,31 +1,31 @@
 import { NextResponse } from "next/server";
+import { chromium } from "playwright"; // Você também pode usar firefox ou webkit
 import { parserNewSussytoons } from "@/lib/fetchManga";
-import puppeteer from "puppeteer";
 
 export async function GET() {
   try {
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'], // Necessário em ambientes como Vercel ou Docker
-    });
-
+    const browser = await chromium.launch({ headless: true });
     const page = await browser.newPage();
-    await page.goto('https://new.sussytoons.site/', { waitUntil: 'networkidle2' });
 
-    // Aguarde até que um seletor específico esteja disponível, caso necessário
-    await page.waitForSelector('.css-r8mu0h',{ timeout: 30000 }); // Substitua pelo seletor relevante
+    // Navega até o site
+    await page.goto('https://new.sussytoons.site/', { waitUntil: 'networkidle' });
 
-    // Extraia o HTML renderizado
-    const content = await page.content();
+    // Aguarda um seletor específico que indica que os dados foram carregados
+    await page.waitForSelector('.css-r8mu0h', { timeout: 30000 });
+
+    // Alternativamente, você pode esperar por uma resposta de rede específica
+    // await page.waitForResponse(response => response.url().includes('/endpoint-dinamico') && response.status() === 200);
+
+    // Captura o conteúdo da página
+    const html = await page.content();
 
     await browser.close();
-    // Realizar o scraping diretamente
-    const mangas = parserNewSussytoons(content)
+
+    // Processa o conteúdo usando o parser
+    const mangas = parserNewSussytoons(html);
     return NextResponse.json({ mangas }, { status: 200 });
   } catch (error) {
-    console.error('Scraping error:', error);
-    return NextResponse.json({ error:'Scraping error:' }, { status: 500 });
-
+    console.error('Error scraping:', error);
+    return NextResponse.json({ error: 'Error scraping data' }, { status: 500 });
   }
-
 }
