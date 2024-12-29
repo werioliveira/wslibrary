@@ -19,7 +19,7 @@ export async function GET() {
         const latestChapter = obra.ultimos_capitulos[0]; // Pega o último capítulo
         return {
           title: obra.obr_nome,
-          link: `${baseUrl}${obra.obr_id}/${obra.obr_slug}/`,
+          link: `${baseUrl}obra/${obra.obr_id}/${obra.obr_slug}/`,
           chapter: latestChapter.cap_numero,
           source: "New Sussy",
         };
