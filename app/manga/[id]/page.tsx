@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState, useEffect } from "react";
+import { use, useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -47,6 +47,7 @@ export default function MangaPage({
   const [isUpdating, setIsUpdating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<Manga | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const route = useRouter();
   useEffect(() => {
     const fetchManga = async () => {
@@ -74,6 +75,46 @@ export default function MangaPage({
     
     setEditData(manga); // Preenche o formulário com os dados atuais
     setIsEditing(true);
+  };
+
+
+  const handleFileUpload = async () => {
+    if (!fileInputRef.current || !fileInputRef.current.files?.length || !manga) return;
+  
+    const file = fileInputRef.current.files[0];
+  
+    try {
+      // Converter o arquivo para base64
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+  
+      reader.onload = async () => {
+        const base64Content = (reader.result as string).split(",")[1]; // Remove o prefixo `data:...`
+  
+        // Fazer o upload diretamente para o backend
+        const response = await fetch("/api/upload-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fileName: file.name, mangaId: manga.id, fileContent: base64Content }),
+        });
+  
+        if (!response.ok) throw new Error("Failed to upload file");
+  
+        const { imageUrl } = await response.json();
+  
+        // Atualizar o estado do mangá com a nova imagem
+        setManga((prev) => (prev ? { ...prev, image: imageUrl } : null));
+  
+        toast.success("Image uploaded successfully!");
+      };
+  
+      reader.onerror = () => {
+        throw new Error("Failed to read file");
+      };
+    } catch (err) {
+      console.error("Upload error:", err);
+      toast.error("Failed to upload image.");
+    }
   };
   const handleSave = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -172,7 +213,7 @@ export default function MangaPage({
     <div className="flex flex-col md:flex-row">
       <div className="relative md:w-1/3 aspect-[3/4]">
         <img
-          src={manga.image}
+          src={manga.image ? manga.image :  "/defaultmanga.webp"}
           alt={manga.name}
           className="w-full h-full object-cover rounded-t-md md:rounded-none"
         />
@@ -271,6 +312,21 @@ export default function MangaPage({
             Read Now <ExternalLink className="h-4 w-4 ml-1" />
           </a>
         </div>
+        <div className="mt-4">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileUpload}
+        />
+        <Button
+          onClick={() => fileInputRef.current?.click()}
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+        >
+          Upload Image
+        </Button>
+      </div>
       </div>
     )}
           </div>
