@@ -297,6 +297,21 @@ export default function MangaPage({
             >
               {isUpdating ? "Deleting..." : "Delete Manga"}
             </Button>
+            <div className="mt-4">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileUpload}
+        />
+        <Button
+          onClick={() => fileInputRef.current?.click()}
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+        >
+          Upload Image
+        </Button>
+      </div>
             {manga.hasNewChapter && manga.newChapter && (
       <div className="py-2 mb-4">
         <h2 className="text-lg font-semibold text-zinc-300 mb-2">New Chapter Available</h2>
@@ -312,21 +327,7 @@ export default function MangaPage({
             Read Now <ExternalLink className="h-4 w-4 ml-1" />
           </a>
         </div>
-        <div className="mt-4">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleFileUpload}
-        />
-        <Button
-          onClick={() => fileInputRef.current?.click()}
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white"
-        >
-          Upload Image
-        </Button>
-      </div>
+
       </div>
     )}
           </div>
