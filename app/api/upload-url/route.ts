@@ -20,16 +20,23 @@ export async function POST(req: NextRequest) {
     // Converte o conteúdo do arquivo de base64 para Buffer
     const buffer = Buffer.from(fileContent, "base64");
 
+    const accessKeyId = process.env.MINIO_ACCESS_KEY;
+    const secretAccessKey = process.env.MINIO_SECRET_KEY;
+
+    if (!accessKeyId || !secretAccessKey) {
+      return NextResponse.json({ error: "Missing S3 credentials" }, { status: 500 });
+    }
+
     const s3 = new S3Client({
       region: "us-east-1",
-      endpoint: "https://minio.werioliveira.shop",
+      endpoint: process.env.MINIO_ENDPOINT,
       credentials: {
-        accessKeyId: "X10RSi3N9ddXcuYscJhB",
-        secretAccessKey: "GKEwDiouEVDjZLB4KNZYawF5GJrgQFlL6or67VFQ",
+        accessKeyId,
+        secretAccessKey,
       },
       forcePathStyle: true,
     });
-
+ 
     const key = `capas/${uuidv4()}-${fileName}`;
 
     const command = new PutObjectCommand({
