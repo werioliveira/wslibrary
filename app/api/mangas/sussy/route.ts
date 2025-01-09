@@ -11,7 +11,7 @@ export async function GET() {
         'Scan-id': '1', // Se necessário
       },
     });
-    const baseUrl= "https://new.sussytoons.site/";
+    const baseUrl= "https://www.sussyscan.com/";
     const data = await response.json();
 // Transformar a resposta da API no formato desejado
     const formattedResponse = {
@@ -19,7 +19,8 @@ export async function GET() {
         const latestChapter = obra.ultimos_capitulos[0]; // Pega o último capítulo
         return {
           title: obra.obr_nome,
-          link: `${baseUrl}obra/${obra.obr_id}/${obra.obr_slug}/`,
+          link: `${baseUrl}capitulo/638819/${obra.ultimos_capitulos[0].cap_id}/`,
+          //link: `${baseUrl}obra/${obra.obr_id}/${obra.obr_slug}/`,
           chapter: latestChapter.cap_numero,
           source: "New Sussy",
         };
