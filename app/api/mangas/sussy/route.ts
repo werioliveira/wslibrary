@@ -11,7 +11,7 @@ export async function GET() {
         'Scan-id': '1', // Se necessário
       },
     });
-    const baseUrl= "https://www.sussyscan.com/";
+    const baseUrl= "https://www.sussytoons.site/";
     const data = await response.json();
 // Transformar a resposta da API no formato desejado
     const formattedResponse = {
