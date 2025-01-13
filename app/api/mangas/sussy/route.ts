@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-
+/*
 interface Manga {
   obr_id: string;
   obr_slug: string;
@@ -29,7 +29,7 @@ function createLink(manga: Manga) {
     
   }
 }
-
+*/
 export async function GET() {
   const apiUrl = 'https://api-dev.sussytoons.site/obras/novos-capitulos?pagina=1&limite=24';
  
@@ -43,15 +43,15 @@ export async function GET() {
 
     const data = await response.json();
 // Transformar a resposta da API no formato desejado
-
+    const baseUrl = 'https://www.sussytoons.site/';
     const formattedResponse = {
       mangas: data.resultados.map((obra: any) => {
         const latestChapter = obra.ultimos_capitulos[0]; // Pega o último capítulo
-        const link = createLink(obra);
+       //const link = createLink(obra);
         return {
           title: obra.obr_nome,
-          link: link,
-          //link: `${baseUrl}obra/${obra.obr_id}/${obra.obr_slug}/`,
+ //         link: link,
+          link: `${baseUrl}obra/${obra.obr_id}/${obra.obr_slug}/`,
           chapter: latestChapter.cap_numero,
           source: "New Sussy",
         };
