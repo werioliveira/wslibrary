@@ -1,5 +1,34 @@
 import { NextResponse } from "next/server";
 
+interface Manga {
+  obr_id: string;
+  obr_slug: string;
+  ultimos_capitulos: { cap_lancado_em: string; cap_id: string }[];
+}
+
+function createLink(manga: Manga) {
+  const ultimosCapitulos = manga.ultimos_capitulos;
+  const baseUrl = 'https://new.sussytoons.site/';
+  if (ultimosCapitulos.length < 1) {
+    // Caso só tenha um capítulo, cria um link padrão
+    return `${baseUrl}obra/${manga.obr_id}/${manga.obr_slug}/`;
+  }
+  // Pega os dois últimos capítulos
+  const ultimo = new Date(ultimosCapitulos[0].cap_lancado_em).getTime();
+  const penultimo = new Date(ultimosCapitulos[1].cap_lancado_em).getTime();
+
+  // Calcula a diferença em minutos
+  const diffMinutes = Math.abs((ultimo - penultimo) / (1000 * 60));
+
+  if (diffMinutes <= 10) {
+    // Se a diferença for menor ou igual a 10 minutos, cria um link especial
+    return `${baseUrl}obra/${manga.obr_id}/${manga.obr_slug}/`;
+  } else {
+    return `${baseUrl}capitulo/638819/${manga.ultimos_capitulos[0].cap_id}/`;
+    // Caso contrário, cria um link normal
+    
+  }
+}
 
 export async function GET() {
   const apiUrl = 'https://api-dev.sussytoons.site/obras/novos-capitulos?pagina=1&limite=24';
@@ -11,15 +40,17 @@ export async function GET() {
         'Scan-id': '1', // Se necessário
       },
     });
-    const baseUrl= "https://www.sussytoons.site/";
+
     const data = await response.json();
 // Transformar a resposta da API no formato desejado
+
     const formattedResponse = {
       mangas: data.resultados.map((obra: any) => {
         const latestChapter = obra.ultimos_capitulos[0]; // Pega o último capítulo
+        const link = createLink(obra);
         return {
           title: obra.obr_nome,
-          link: `${baseUrl}capitulo/638819/${obra.ultimos_capitulos[0].cap_id}/`,
+          link: link,
           //link: `${baseUrl}obra/${obra.obr_id}/${obra.obr_slug}/`,
           chapter: latestChapter.cap_numero,
           source: "New Sussy",
