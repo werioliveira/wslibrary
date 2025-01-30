@@ -5,9 +5,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function PUT(request: NextRequest) {
 
-    console.log(request)
     const { pushToken, userId } = await request.json();
-    console.log(pushToken)
+
     if (!pushToken) {
       return NextResponse.json({ error: "Push token is required" }, { status: 400 });
     }
