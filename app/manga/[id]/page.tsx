@@ -1,9 +1,8 @@
 "use client";
 
 import { use, useState, useEffect, useRef } from "react";
-
-import { Button } from "../../../components/ui/button";
-import { Card, CardContent } from "../../../components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   ChevronUp,
   ChevronDown,
@@ -13,8 +12,8 @@ import {
 import { Toaster, toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Modal } from "../../../components/Modal";
-import MangaPageSkeleton from "../../../components/manga-page-skeleton";
+import { Modal } from "@/components/Modal";
+import MangaPageSkeleton from "@/components/manga-page-skeleton";
 
 interface Manga {
   id: string;
