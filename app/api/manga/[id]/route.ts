@@ -1,44 +1,48 @@
-import { auth } from "@/lib/auth";
+
+import { getUserId } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 
 
+
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    // Resolve o Promise de params
-    const { id } = await params; 
-    const session = await auth()
+  const { id } = await params;
 
-    if (!session || !session.user || !session.user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    try {
-      const manga = await db.manga.findUnique({
-        where: { id },
-      });
-  
-      if (!manga) {
-        return NextResponse.json({ error: "Manga not found" }, { status: 404 });
-      }
-    // Verifica se o mangá pertence ao usuário autenticado
-    if (manga.userId !== session.user.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-      return NextResponse.json(manga);
-    } catch (error) {
-      return NextResponse.json({ error: "Internal Server Error"+ error }, { status: 500 });
-    }
+  // ✅ Obtém o ID do usuário autenticado
+  const userId = await getUserId(request);
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    const session = await auth();
-  
-    if (!session || !session.user || !session.user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  try {
+    const manga = await db.manga.findUnique({
+      where: { id },
+    });
+
+    if (!manga) {
+      return NextResponse.json({ error: 'Manga not found' }, { status: 404 });
     }
+
+    // ✅ Verifica se o mangá pertence ao usuário autenticado
+    if (manga.userId !== userId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    return NextResponse.json(manga);
+  } catch (error) {
+    console.error('Erro na API:', error);
+    return NextResponse.json({ error: 'Internal Server Error: ' + error }, { status: 500 });
+  }
+}
+ export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   
     const { id } = await params;
     const { chapter, name, secondName, image, linkToWebsite, status, website } = await request.json();
-  
+    // ✅ Obtém o ID do usuário autenticado
+    const userId = await getUserId(request);
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     try {
       const manga = await db.manga.findUnique({
         where: { id },
@@ -47,12 +51,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       if (!manga) {
         return NextResponse.json({ error: "Manga not found" }, { status: 404 });
       }
-  
-      // Verifica se o mangá pertence ao usuário autenticado
-      if (manga.userId !== session.user.id) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
-  
+        // Verifica se o mangá pertence ao usuário autenticado
+        if (manga.userId !== userId) {
+          return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
       // Extrai o capítulo do campo `newChapter`, caso exista
       const newChapterData = manga.newChapter as { chapter: number } | null;
       const newChapterNumber = newChapterData?.chapter || 0;
@@ -86,13 +88,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   
   
   export async function DELETE(
-    request: Request,
+    request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
   ) {
-    const session = await auth()
-
-    if (!session || !session.user || !session.user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await getUserId(request);
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const { id } = await params;
   
@@ -104,11 +105,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       if (!manga) {
         return NextResponse.json({ error: "Manga not found" }, { status: 404 });
       }
-  
-      // Verifica se o mangá pertence ao usuário autenticado
-      if (manga.userId !== session.user.id) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
+        // Verifica se o mangá pertence ao usuário autenticado
+        if (manga.userId !== userId) {
+          return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
   
       const deletedManga = await db.manga.delete({
         where: { id },
@@ -122,11 +122,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Failed to delete manga"+error }, { status: 500 });
     }
   }
-  export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    const session = await auth()
-
-    if (!session || !session.user || !session.user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const userId = await getUserId(request);
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const { id } = await params;
     const { hasNewChapter } = await request.json();
@@ -141,7 +140,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       }
   
       // Verifica se o mangá pertence ao usuário autenticado
-      if (manga.userId !== session.user.id) {
+      if (manga.userId !== userId) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
   

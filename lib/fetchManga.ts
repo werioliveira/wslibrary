@@ -210,53 +210,81 @@ export function parserNewSussytoons(html: string): ScrapedManga[] {
   return results;
 }
 
-// Ajuste na função de processamento para incluir a origem do mangá
+// Função para enviar notificação push via Expo
+async function sendPushNotification(expoPushToken: string, mangaName: string, chapter: number, link: string) {
+  const message = {
+    to: expoPushToken,
+    sound: 'default',
+    title: `Novo capítulo de ${mangaName}!`,
+    body: `Capítulo ${chapter} disponível.`,
+    data: { url: link },
+  };
+
+  try {
+    // Fazendo a requisição com maior timeout e cabeçalhos apropriados
+    const response = await fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Accept-Encoding': 'gzip, deflate',
+      },
+      body: JSON.stringify(message),
+      timeout: 10000, // Timeout de 10 segundos
+    });
+
+    // Checando se a resposta foi bem-sucedida
+    if (!response.ok) {
+      const errorResponse = await response.json();
+      console.error('Erro ao enviar notificação:', errorResponse);
+      throw new Error(`Erro ao enviar notificação: ${errorResponse.message || response.statusText}`);
+    }
+
+    const responseBody = await response.json();
+    console.log('Notificação enviada com sucesso:', responseBody);
+
+  } catch (error) {
+    console.error('Erro ao enviar a notificação:', error);
+    // Aqui você pode registrar no log ou tratar conforme necessário
+  }
+}
+// Função principal de processamento dos mangás
 export async function processMangas(scrapedMangas: ScrapedManga[]) {
-  // Ajuste a busca para maior flexibilidade e precisão
   const fuse = new Fuse(scrapedMangas, {
     keys: ["title"],
-    threshold: 0.1, // Ajuste a sensibilidade para encontrar correspondências
+    threshold: 0.1,
     includeScore: true,
-    shouldSort: true, // Ordena os resultados por relevância
+    shouldSort: true,
   });
 
-  // Busca os mangas do banco
   const userMangas = await db.manga.findMany({
     include: {
-      user: true, // Inclui informações do usuário para obter o Discord ID
+      user: true,
     },
   });
 
-  // Para cada manga do usuário, busque correspondências com o título e subtítulo
   for (const manga of userMangas) {
-    // Normalize os nomes para comparação
     const nameToSearch = manga.name.trim().toLowerCase();
     const secondNameToSearch = manga.secondName ? manga.secondName.trim().toLowerCase() : null;
 
-    // Buscar correspondências usando Fuse.js
     const matches = [
       ...fuse.search(nameToSearch), 
       ...(secondNameToSearch ? fuse.search(secondNameToSearch) : []),
     ];
 
-    // Se houver matches, processe o melhor
-    const bestMatch = matches[0]; // Fuse já retorna os resultados ordenados, não é necessário sort()
-    
+    const bestMatch = matches[0];
+
     if (bestMatch && bestMatch.item.chapter > manga.chapter) {
       const matchingManga = bestMatch.item;
-      
-      // Preparar os dados do novo capítulo
+
       const newChapterData = {
         chapter: matchingManga.chapter,
         source: matchingManga.source,
         link: matchingManga.link,
       };
 
-      // Verificar se há um novo capítulo
       const newChapter = manga.newChapter as unknown as NewChapter;
       if (!newChapter || newChapterData.chapter > newChapter.chapter) {
-
-        // Atualiza o banco de dados com o novo capítulo
         await db.manga.update({
           where: { id: manga.id },
           data: {
@@ -264,17 +292,35 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
             newChapter: newChapterData,
           },
         });
-
-        // Notificar o usuário no Discord se o usuário estiver "Lendo"
+      
+        // Criar as promessas de notificação
+        const notifications: Promise<any>[] = [];
+      
+        // Notificar usuário no Discord (se aplicável)
         if (manga.user.discordId && manga.status === "Lendo") {
-          await notifyUserAboutNewChapter(
+          const discordNotification = notifyUserAboutNewChapter(
             process.env.DISCORD_CHANNEL_ID ?? "1321316349234118716",
             manga.user.discordId,
             manga.name,
             matchingManga.chapter,
             matchingManga.link
           );
+          notifications.push(discordNotification);
         }
+      
+        // Notificar usuário no aplicativo via push notification (se aplicável)
+        if (manga.user.pushToken && manga.status === "Lendo") {
+          const pushNotification = sendPushNotification(
+            manga.user.pushToken,
+            manga.name,
+            matchingManga.chapter,
+            matchingManga.link
+          );
+          notifications.push(pushNotification);
+        }
+      
+        // Executar as notificações em paralelo
+        await Promise.all(notifications);
       }
     }
   }

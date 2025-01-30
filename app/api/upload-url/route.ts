@@ -1,14 +1,14 @@
-import { auth } from "@/lib/auth";
+
+import { getUserId } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 
 export async function POST(req: NextRequest) {
-  const session = await auth();
-
-  if (!session || !session.user || !session.user.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = await getUserId(req);
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   try {
     const { fileName, mangaId, fileContent } = await req.json();
@@ -16,7 +16,9 @@ export async function POST(req: NextRequest) {
     if (!fileName || !mangaId || !fileContent) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
-
+    console.log(fileContent)
+    console.log(fileName)
+    console.log(mangaId)
     // Converte o conteúdo do arquivo de base64 para Buffer
     const buffer = Buffer.from(fileContent, "base64");
 
