@@ -1,0 +1,8 @@
+{
+    "entryPoints": ["./app", "./src"], // Especifique os diretórios ou arquivos de entrada
+    "entryPointStrategy": "expand",   // Inclui arquivos em subdiretórios
+    "out": "docs",
+    "tsconfig": "./tsconfig.json",    // Certifique-se de que o caminho está correto
+    "includeVersion": true,
+    "exclude": ["node_modules", "**/*.test.tsx"]
+  }
