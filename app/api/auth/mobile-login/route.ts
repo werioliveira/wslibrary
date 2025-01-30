@@ -43,6 +43,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ token: sessionToken, user });
   } catch (error) {
-    return NextResponse.json({ error: "Erro no login" }, { status: 500 });
+    return NextResponse.json({ error: "Erro no login" +error }, { status: 500 });
   }
 }

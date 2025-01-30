@@ -1,5 +1,5 @@
 
-import { getUserId } from "@/lib/auth-utils";
+
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 

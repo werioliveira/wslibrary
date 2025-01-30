@@ -230,7 +230,7 @@ async function sendPushNotification(expoPushToken: string, mangaName: string, ch
         'Accept-Encoding': 'gzip, deflate',
       },
       body: JSON.stringify(message),
-      timeout: 10000, // Timeout de 10 segundos
+      // Timeout de 10 segundos
     });
 
     // Checando se a resposta foi bem-sucedida
