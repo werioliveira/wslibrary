@@ -264,16 +264,30 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
   });
 
   for (const manga of userMangas) {
+    // Verifica se é o manga do usuário que você quer
+   // if (manga.userId !== "6749ac7049718ff2ec4db0e5") continue;
+
     const nameToSearch = manga.name.trim().toLowerCase();
     const secondNameToSearch = manga.secondName ? manga.secondName.trim().toLowerCase() : null;
 
+    // Busca por ambos os nomes no Fuse
     const matches = [
-      ...fuse.search(nameToSearch), 
+      ...fuse.search(nameToSearch),
       ...(secondNameToSearch ? fuse.search(secondNameToSearch) : []),
     ];
 
-    const bestMatch = matches[0];
+    // Encontre o capítulo maior entre as correspondências
+    let bestMatch: any = null;
+    let maxChapter = manga.chapter;
 
+    for (const match of matches) {
+      if (match.item.chapter > maxChapter) {
+        bestMatch = match;
+        maxChapter = match.item.chapter;
+      }
+    }
+
+    // Verifica se encontrou uma correspondência e se o capítulo é maior
     if (bestMatch && bestMatch.item.chapter > manga.chapter) {
       const matchingManga = bestMatch.item;
 
@@ -284,47 +298,61 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
       };
 
       const newChapter = manga.newChapter as unknown as NewChapter;
+
+      // Verifica se o novo capítulo é maior que o atual ou se não existe capítulo registrado
       if (!newChapter || newChapterData.chapter > newChapter.chapter) {
-        await db.manga.update({
-          where: { id: manga.id },
-          data: {
-            hasNewChapter: true,
-            newChapter: newChapterData,
-          },
-        });
-      
-        // Criar as promessas de notificação
-        const notifications: Promise<any>[] = [];
-      
-        // Notificar usuário no Discord (se aplicável)
-        if (manga.user.discordId && manga.status === "Lendo") {
-          const discordNotification = notifyUserAboutNewChapter(
-            process.env.DISCORD_CHANNEL_ID ?? "1321316349234118716",
-            manga.user.discordId,
-            manga.name,
-            matchingManga.chapter,
-            matchingManga.link
-          );
-          notifications.push(discordNotification);
+        try {
+          // Atualiza no banco de dados
+          await db.manga.update({
+            where: { id: manga.id },
+            data: {
+              hasNewChapter: true,
+              newChapter: newChapterData,
+            },
+          });
+
+          console.log(`Manga ID: ${manga.id} atualizado com sucesso!`);
+
+          // Criar as promessas de notificação
+          const notifications: Promise<any>[] = [];
+
+          // Notificar usuário no Discord (se aplicável)
+          if (manga.user.discordId && manga.status === "Lendo") {
+            const discordNotification = notifyUserAboutNewChapter(
+              process.env.DISCORD_CHANNEL_ID ?? "1321316349234118716",
+              manga.user.discordId,
+              manga.name,
+              matchingManga.chapter,
+              matchingManga.link
+            );
+            notifications.push(discordNotification);
+          }
+
+          // Notificar usuário no aplicativo via push notification (se aplicável)
+          if (manga.user.pushToken && manga.status === "Lendo") {
+            const pushNotification = sendPushNotification(
+              manga.user.pushToken,
+              manga.name,
+              matchingManga.chapter,
+              matchingManga.link
+            );
+            notifications.push(pushNotification);
+          }
+
+          // Executar as notificações em paralelo
+          await Promise.all(notifications);
+        } catch (error) {
+          console.error(`Erro ao atualizar manga ID ${manga.id}:`, error);
         }
-      
-        // Notificar usuário no aplicativo via push notification (se aplicável)
-        if (manga.user.pushToken && manga.status === "Lendo") {
-          const pushNotification = sendPushNotification(
-            manga.user.pushToken,
-            manga.name,
-            matchingManga.chapter,
-            matchingManga.link
-          );
-          notifications.push(pushNotification);
-        }
-      
-        // Executar as notificações em paralelo
-        await Promise.all(notifications);
+      } else {
+        console.log(`Manga ID ${manga.id} não precisa ser atualizado.`);
       }
+    } else {
+      console.log(`Nenhuma correspondência para o manga ID ${manga.id}`);
     }
   }
 }
+
 
 
 
