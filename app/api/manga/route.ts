@@ -4,6 +4,7 @@ import { MangaStatus, Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 function isBase64(str: string) {
+  console.log("is base64")
   const base64Regex = /^[A-Za-z0-9+/=]+$/;
   return base64Regex.test(str) && (str.length % 4 === 0);
 }
@@ -11,7 +12,7 @@ export async function POST(req: NextRequest) {
   try {
     const { name, secondName, image, chapter, website, userId, linkToWebsite, status } =  
     await req.json();
-    console.log(req)
+
     let imageUpload = image;
       if(image && isBase64(image)){
         const buffer = Buffer.from(image, "base64");
@@ -43,8 +44,9 @@ export async function POST(req: NextRequest) {
         });
   
         await s3.send(command);
-  
+        
         imageUpload = `https://minio.werioliveira.shop/wslibrary/${key}`;
+        console.log(imageUpload)
       }
     const data = {
       name: name,
@@ -56,6 +58,7 @@ export async function POST(req: NextRequest) {
       status: status,
       userId: userId,
     };
+    console.log(data)
     // Cria novo manga no MongoDB com Prisma
     const newManga = await db.manga.create({
       data,
