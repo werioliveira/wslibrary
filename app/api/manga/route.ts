@@ -1,15 +1,44 @@
 import { db } from "@/lib/db";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { MangaStatus, Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
-
+import { v4 as uuidv4 } from "uuid";
 export async function POST(req: NextRequest) {
   try {
-    const { name, secondName, image, chapter, website, userId, linkToWebsite, status } =
+    const formData = await req.formData();
+    const { name, secondName, chapter, website, userId, linkToWebsite, status } =
       await req.json();
+      let image = formData.get("image");
+      if (image instanceof Blob) {
+        const buffer = Buffer.from(await image.arrayBuffer());
+        const fileName = `${uuidv4()}-${image.name}`;
+        const s3 = new S3Client({
+          region: "us-east-1",
+          endpoint: process.env.MINIO_ENDPOINT,
+          credentials: {
+            accessKeyId: process.env.MINIO_ACCESS_KEY!,
+            secretAccessKey: process.env.MINIO_SECRET_KEY!,
+          },
+          forcePathStyle: true,
+        });
+        
+        const key = `capas/${fileName}`;
+        const command = new PutObjectCommand({
+          Bucket: "wslibrary",
+          Key: key,
+          Body: buffer,
+          ContentType: image.type,
+          ACL: "public-read",
+        });
+  
+        await s3.send(command);
+        image = `https://minio.werioliveira.shop/wslibrary/${key}`;
+      }
+  
     const data = {
       name: name,
       secondName: secondName,
-      image: image,
+      image: image || "",
       chapter: parseInt(chapter),
       website: website,
       linkToWebsite: linkToWebsite,

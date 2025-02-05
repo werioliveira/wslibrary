@@ -16,9 +16,7 @@ export async function POST(req: NextRequest) {
     if (!fileName || !mangaId || !fileContent) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
-    console.log(fileContent)
-    console.log(fileName)
-    console.log(mangaId)
+
     // Converte o conteúdo do arquivo de base64 para Buffer
     const buffer = Buffer.from(fileContent, "base64");
 
