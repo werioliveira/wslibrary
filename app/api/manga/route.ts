@@ -4,53 +4,60 @@ import { MangaStatus, Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 function isBase64(str: string) {
-  console.log("is base64")
   const base64Regex = /^[A-Za-z0-9+/=]+$/;
-  return base64Regex.test(str) && (str.length % 4 === 0);
+  return base64Regex.test(str) && str.length % 4 === 0;
 }
 export async function POST(req: NextRequest) {
   try {
-    const { name, secondName, image, chapter, website, userId, linkToWebsite, status } =  
-    await req.json();
+    const {
+      name,
+      secondName,
+      image,
+      chapter,
+      website,
+      userId,
+      linkToWebsite,
+      status,
+    } = await req.json();
 
     let imageUpload = image;
-      if(image && isBase64(image)){
-        const buffer = Buffer.from(image, "base64");
+    if (image && isBase64(image)) {
+      const buffer = Buffer.from(image, "base64");
 
-        const accessKeyId = process.env.MINIO_ACCESS_KEY;
-        const secretAccessKey = process.env.MINIO_SECRET_KEY;
-  
+      const accessKeyId = process.env.MINIO_ACCESS_KEY;
+      const secretAccessKey = process.env.MINIO_SECRET_KEY;
 
-        if (!accessKeyId || !secretAccessKey) {
-          return NextResponse.json({ error: "Missing S3 credentials" }, { status: 500 });
-        }
-  
-        const s3 = new S3Client({
-          region: "us-east-1",
-          endpoint: process.env.MINIO_ENDPOINT,
-          credentials: {
-            accessKeyId,
-            secretAccessKey,
-          },
-          forcePathStyle: true,
-        });
-       
-    const key = `capas/${uuidv4()}-${name}`;
-
-    const command = new PutObjectCommand({
-      Bucket: "wslibrary", // Substitua pelo nome correto do bucket
-      Key: key,
-      Body: buffer,
-      ContentType: "image/jpeg", // Altere se necessário
-      ACL: "public-read", // Garante que o arquivo seja público
-    });
-  
-        await s3.send(command);
-        
-        imageUpload = `https://minio.werioliveira.shop/wslibrary/${key}`;
-
+      if (!accessKeyId || !secretAccessKey) {
+        return NextResponse.json(
+          { error: "Missing S3 credentials" },
+          { status: 500 }
+        );
       }
-      console.log(imageUpload)
+
+      const s3 = new S3Client({
+        region: "us-east-1",
+        endpoint: process.env.MINIO_ENDPOINT,
+        credentials: {
+          accessKeyId,
+          secretAccessKey,
+        },
+        forcePathStyle: true,
+      });
+
+      const key = `capas/${uuidv4()}-${name}`;
+
+      const command = new PutObjectCommand({
+        Bucket: "wslibrary", // Substitua pelo nome correto do bucket
+        Key: key,
+        Body: buffer,
+        ContentType: "image/jpeg", // Altere se necessário
+        ACL: "public-read", // Garante que o arquivo seja público
+      });
+
+      await s3.send(command);
+
+      imageUpload = `https://minio.werioliveira.shop/wslibrary/${key}`;
+    }
     const data = {
       name: name,
       secondName: secondName,
@@ -61,7 +68,6 @@ export async function POST(req: NextRequest) {
       status: status,
       userId: userId,
     };
-    console.log(data)
     // Cria novo manga no MongoDB com Prisma
     const newManga = await db.manga.create({
       data,
@@ -105,23 +111,23 @@ export async function GET(req: NextRequest) {
       status: status as MangaStatus, // Filtra pelo status, converte para o tipo correto
     };
 
-  // Adiciona filtro pelo nome ou pelo secondName, se fornecido
-  if (name) {
-    where.OR = [
-      {
-        name: {
-          contains: name, // Busca parcialmente no campo `name`
-          mode: "insensitive", // Ignora maiúsculas/minúsculas
+    // Adiciona filtro pelo nome ou pelo secondName, se fornecido
+    if (name) {
+      where.OR = [
+        {
+          name: {
+            contains: name, // Busca parcialmente no campo `name`
+            mode: "insensitive", // Ignora maiúsculas/minúsculas
+          },
         },
-      },
-      {
-        secondName: {
-          contains: name, // Busca parcialmente no campo `secondName`
-          mode: "insensitive", // Ignora maiúsculas/minúsculas
+        {
+          secondName: {
+            contains: name, // Busca parcialmente no campo `secondName`
+            mode: "insensitive", // Ignora maiúsculas/minúsculas
+          },
         },
-      },
-    ];
-  }
+      ];
+    }
     // Busca os mangás com paginação
     const mangas = await db.manga.findMany({
       where,
