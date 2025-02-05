@@ -16,9 +16,11 @@ export async function POST(req: NextRequest) {
     let imageUpload = image;
       if(image && isBase64(image)){
         const buffer = Buffer.from(image, "base64");
+
         const accessKeyId = process.env.MINIO_ACCESS_KEY;
         const secretAccessKey = process.env.MINIO_SECRET_KEY;
   
+
         if (!accessKeyId || !secretAccessKey) {
           return NextResponse.json({ error: "Missing S3 credentials" }, { status: 500 });
         }
@@ -33,21 +35,22 @@ export async function POST(req: NextRequest) {
           forcePathStyle: true,
         });
        
-        const key = `capas/${uuidv4()}-${image}`;
-  
-        const command = new PutObjectCommand({
-          Bucket: "wslibrary", // Substitua pelo nome correto do bucket
-          Key: key,
-          Body: buffer,
-          ContentType: "image/jpeg", // Altere se necessário
-          ACL: "public-read", // Garante que o arquivo seja público
-        });
+    const key = `capas/${uuidv4()}-${name}`;
+
+    const command = new PutObjectCommand({
+      Bucket: "wslibrary", // Substitua pelo nome correto do bucket
+      Key: key,
+      Body: buffer,
+      ContentType: "image/jpeg", // Altere se necessário
+      ACL: "public-read", // Garante que o arquivo seja público
+    });
   
         await s3.send(command);
         
         imageUpload = `https://minio.werioliveira.shop/wslibrary/${key}`;
-        console.log(imageUpload)
+
       }
+      console.log(imageUpload)
     const data = {
       name: name,
       secondName: secondName,
