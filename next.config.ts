@@ -10,7 +10,6 @@ const nextConfig: NextConfig = {
     return config;
   },
   reactStrictMode: true, // Se você quiser habilitar o modo estrito
-  swcMinify: true, // Habilitando minificação com o SWC
 };
 
 export default nextConfig;

@@ -47,7 +47,6 @@ export function AddMangaButton() {
           userId: session.user.id,
         }),
       });
-  
       if (!res.ok) {
         toast.error("Erro ao adicionar manga!");
         return;

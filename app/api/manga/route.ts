@@ -3,42 +3,53 @@ import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { MangaStatus, Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
+function isBase64(str: string) {
+  const base64Regex = /^[A-Za-z0-9+/=]+$/;
+  return base64Regex.test(str) && (str.length % 4 === 0);
+}
 export async function POST(req: NextRequest) {
   try {
-    const formData = await req.formData();
-    const { name, secondName, chapter, website, userId, linkToWebsite, status } =
-      await req.json();
-      let image = formData.get("image");
-      if (image instanceof Blob) {
-        const buffer = Buffer.from(await image.arrayBuffer());
-        const fileName = `${uuidv4()}-${image.name}`;
+    const { name, secondName, image, chapter, website, userId, linkToWebsite, status } =  
+    await req.json();
+    console.log(req)
+    let imageUpload = image;
+      if(image && isBase64(image)){
+        const buffer = Buffer.from(image, "base64");
+        const accessKeyId = process.env.MINIO_ACCESS_KEY;
+        const secretAccessKey = process.env.MINIO_SECRET_KEY;
+  
+        if (!accessKeyId || !secretAccessKey) {
+          return NextResponse.json({ error: "Missing S3 credentials" }, { status: 500 });
+        }
+  
         const s3 = new S3Client({
           region: "us-east-1",
           endpoint: process.env.MINIO_ENDPOINT,
           credentials: {
-            accessKeyId: process.env.MINIO_ACCESS_KEY!,
-            secretAccessKey: process.env.MINIO_SECRET_KEY!,
+            accessKeyId,
+            secretAccessKey,
           },
           forcePathStyle: true,
         });
-        
-        const key = `capas/${fileName}`;
+       
+        const key = `capas/${uuidv4()}-${image}`;
+  
         const command = new PutObjectCommand({
-          Bucket: "wslibrary",
+          Bucket: "wslibrary", // Substitua pelo nome correto do bucket
           Key: key,
           Body: buffer,
-          ContentType: image.type,
-          ACL: "public-read",
+          ContentType: "image/jpeg", // Altere se necessário
+          ACL: "public-read", // Garante que o arquivo seja público
         });
   
         await s3.send(command);
-        image = `https://minio.werioliveira.shop/wslibrary/${key}`;
-      }
   
+        imageUpload = `https://minio.werioliveira.shop/wslibrary/${key}`;
+      }
     const data = {
       name: name,
       secondName: secondName,
-      image: image || "",
+      image: imageUpload,
       chapter: parseInt(chapter),
       website: website,
       linkToWebsite: linkToWebsite,
