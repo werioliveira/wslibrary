@@ -331,11 +331,7 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
         } catch (error) {
           console.error(`Erro ao atualizar manga ID ${manga.id}:`, error);
         }
-      } else {
-        console.log(`Manga ID ${manga.id} não precisa ser atualizado.`);
       }
-    } else {
-      console.log(`Nenhuma correspondência para o manga ID ${manga.id}`);
     }
   }
 
