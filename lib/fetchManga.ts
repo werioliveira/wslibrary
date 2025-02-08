@@ -220,35 +220,40 @@ async function sendPushNotification(expoPushToken: string, mangaName: string, ch
     data: { url: link },
   };
 
-  try {
-    // Fazendo a requisição com maior timeout e cabeçalhos apropriados
-    const response = await fetch('https://exp.host/--/api/v2/push/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Accept-Encoding': 'gzip, deflate',
-      },
-      body: JSON.stringify(message),
-      // Timeout de 10 segundos
-    });
+  let attempts = 0;
+  const maxAttempts = 3;
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-    // Checando se a resposta foi bem-sucedida
-    if (!response.ok) {
-      const errorResponse = await response.json();
-      console.error('Erro ao enviar notificação:', errorResponse);
-      throw new Error(`Erro ao enviar notificação: ${errorResponse.message || response.statusText}`);
+  while (attempts < maxAttempts) {
+    try {
+      const response = await fetch('https://exp.host/--/api/v2/push/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Accept-Encoding': 'gzip, deflate',
+        },
+        body: JSON.stringify(message),
+      });
+
+      if (!response.ok) {
+        const errorResponse = await response.json();
+        console.error('Erro ao enviar notificação:', errorResponse);
+        throw new Error(`Erro ao enviar notificação: ${errorResponse.message || response.statusText}`);
+      }
+
+      const responseBody = await response.json();
+      console.log('Notificação enviada com sucesso:', responseBody);
+      return;
+    } catch (error) {
+      console.error(`Tentativa ${attempts + 1} falhou ao enviar a notificação:`, error);
+      attempts++;
+      if (attempts < maxAttempts) await delay(5000); // Espera 5 segundos antes de tentar novamente
     }
-
-    const responseBody = await response.json();
-    console.log('Notificação enviada com sucesso:', responseBody);
-
-  } catch (error) {
-    console.error('Erro ao enviar a notificação:', error);
-    // Aqui você pode registrar no log ou tratar conforme necessário
   }
+  console.error('Falha ao enviar notificação após várias tentativas.');
 }
-// Função principal de processamento dos mangás
+
 export async function processMangas(scrapedMangas: ScrapedManga[]) {
   const fuse = new Fuse(scrapedMangas, {
     keys: ["title"],
@@ -263,20 +268,17 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
     },
   });
 
-  for (const manga of userMangas) {
-    // Verifica se é o manga do usuário que você quer
-   // if (manga.userId !== "6749ac7049718ff2ec4db0e5") continue;
+  const pushNotifications: Promise<any>[] = [];
 
+  for (const manga of userMangas) {
     const nameToSearch = manga.name.trim().toLowerCase();
     const secondNameToSearch = manga.secondName ? manga.secondName.trim().toLowerCase() : null;
 
-    // Busca por ambos os nomes no Fuse
     const matches = [
       ...fuse.search(nameToSearch),
       ...(secondNameToSearch ? fuse.search(secondNameToSearch) : []),
     ];
 
-    // Encontre o capítulo maior entre as correspondências
     let bestMatch: any = null;
     let maxChapter = manga.chapter;
 
@@ -287,7 +289,6 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
       }
     }
 
-    // Verifica se encontrou uma correspondência e se o capítulo é maior
     if (bestMatch && bestMatch.item.chapter > manga.chapter) {
       const matchingManga = bestMatch.item;
 
@@ -299,10 +300,8 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
 
       const newChapter = manga.newChapter as unknown as NewChapter;
 
-      // Verifica se o novo capítulo é maior que o atual ou se não existe capítulo registrado
       if (!newChapter || newChapterData.chapter > newChapter.chapter) {
         try {
-          // Atualiza no banco de dados
           await db.manga.update({
             where: { id: manga.id },
             data: {
@@ -313,10 +312,8 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
 
           console.log(`Manga ID: ${manga.id} atualizado com sucesso!`);
 
-          // Criar as promessas de notificação
           const notifications: Promise<any>[] = [];
 
-          // Notificar usuário no Discord (se aplicável)
           if (manga.user.discordId && manga.status === "Lendo") {
             const discordNotification = notifyUserAboutNewChapter(
               process.env.DISCORD_CHANNEL_ID ?? "1321316349234118716",
@@ -328,7 +325,6 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
             notifications.push(discordNotification);
           }
 
-          // Notificar usuário no aplicativo via push notification (se aplicável)
           if (manga.user.pushToken && manga.status === "Lendo") {
             const pushNotification = sendPushNotification(
               manga.user.pushToken,
@@ -339,7 +335,6 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
             notifications.push(pushNotification);
           }
 
-          // Executar as notificações em paralelo
           await Promise.all(notifications);
         } catch (error) {
           console.error(`Erro ao atualizar manga ID ${manga.id}:`, error);
@@ -351,6 +346,8 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
       console.log(`Nenhuma correspondência para o manga ID ${manga.id}`);
     }
   }
+
+  await Promise.all(pushNotifications);
 }
 
 
