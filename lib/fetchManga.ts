@@ -213,10 +213,14 @@ export function parserNewSussytoons(html: string): ScrapedManga[] {
 // Função para enviar notificação push via Expo
 async function sendPushNotificationsBatch(messages: any[]) {
   const batchSize = 100; // Expo permite até 100 notificações por requisição
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+  const maxAttempts = 3;
 
   for (let i = 0; i < messages.length; i += batchSize) {
     const batch = messages.slice(i, i + batchSize);
+    let attempts = 0;
 
+    while (attempts < maxAttempts) {
       try {
         const response = await fetch('https://exp.host/--/api/v2/push/send', {
           method: 'POST',
@@ -237,13 +241,14 @@ async function sendPushNotificationsBatch(messages: any[]) {
         console.log('Notificações enviadas com sucesso:', await response.json());
         break;
       } catch (error) {
-        console.error(`Tentativa falhou ao enviar a notificação:`, error);
+        console.error(`Tentativa ${attempts + 1} falhou ao enviar as notificações:`, error);
+        attempts++;
+        if (attempts < maxAttempts) await delay(5000);
       }
-
+    }
   }
 }
 
-// Função principal de processamento dos mangás
 export async function processMangas(scrapedMangas: ScrapedManga[]) {
   const fuse = new Fuse(scrapedMangas, {
     keys: ["title"],
@@ -258,20 +263,18 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
     },
   });
 
-  for (const manga of userMangas) {
-    // Verifica se é o manga do usuário que você quer
-   // if (manga.userId !== "6749ac7049718ff2ec4db0e5") continue;
+  const pushMessages: any[] = [];
+  const discordNotifications: Promise<any>[] = [];
 
+  for (const manga of userMangas) {
     const nameToSearch = manga.name.trim().toLowerCase();
     const secondNameToSearch = manga.secondName ? manga.secondName.trim().toLowerCase() : null;
 
-    // Busca por ambos os nomes no Fuse
     const matches = [
       ...fuse.search(nameToSearch),
       ...(secondNameToSearch ? fuse.search(secondNameToSearch) : []),
     ];
 
-    // Encontre o capítulo maior entre as correspondências
     let bestMatch: any = null;
     let maxChapter = manga.chapter;
 
@@ -282,7 +285,6 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
       }
     }
 
-    // Verifica se encontrou uma correspondência e se o capítulo é maior
     if (bestMatch && bestMatch.item.chapter > manga.chapter) {
       const matchingManga = bestMatch.item;
 
@@ -294,10 +296,8 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
 
       const newChapter = manga.newChapter as unknown as NewChapter;
 
-      // Verifica se o novo capítulo é maior que o atual ou se não existe capítulo registrado
       if (!newChapter || newChapterData.chapter > newChapter.chapter) {
         try {
-          // Atualiza no banco de dados
           await db.manga.update({
             where: { id: manga.id },
             data: {
@@ -308,10 +308,6 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
 
           console.log(`Manga ID: ${manga.id} atualizado com sucesso!`);
 
-          // Criar as promessas de notificação
-          const notifications: Promise<any>[] = [];
-          const pushMessages: any[] = [];
-          // Notificar usuário no Discord (se aplicável)
           if (manga.user.discordId && manga.status === "Lendo") {
             const discordNotification = notifyUserAboutNewChapter(
               process.env.DISCORD_CHANNEL_ID ?? "1321316349234118716",
@@ -320,10 +316,9 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
               matchingManga.chapter,
               matchingManga.link
             );
-            notifications.push(discordNotification);
+            discordNotifications.push(discordNotification);
           }
 
-          // Notificar usuário no aplicativo via push notification (se aplicável)
           if (manga.user.pushToken && manga.status === "Lendo") {
             pushMessages.push({
               to: manga.user.pushToken,
@@ -332,12 +327,6 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
               body: `Capítulo ${matchingManga.chapter} disponível.`,
               data: { url: matchingManga.link },
             });
-          }
-
-          // Executar as notificações em paralelo
-          await Promise.all(notifications);
-          if (pushMessages.length > 0) {
-            await sendPushNotificationsBatch(pushMessages);
           }
         } catch (error) {
           console.error(`Erro ao atualizar manga ID ${manga.id}:`, error);
@@ -349,11 +338,12 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
       console.log(`Nenhuma correspondência para o manga ID ${manga.id}`);
     }
   }
+
+  await Promise.all(discordNotifications);
+  if (pushMessages.length > 0) {
+    await sendPushNotificationsBatch(pushMessages);
+  }
 }
-
-
-
-
 
 
 // Função para deduplicar mangás baseando-se no título
