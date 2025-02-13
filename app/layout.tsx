@@ -3,6 +3,7 @@ import './globals.css'
 import { Inter } from 'next/font/google'
 import { Navbar } from '@/components/navbar'
 import { Providers } from './providers'
+import Analytics from '@/components/Analytics'
 
 
 const inter = Inter({ subsets: ['latin'] })
@@ -23,6 +24,7 @@ export default function RootLayout({
       <body className={inter.className + " bg-zinc-950 text-white min-h-screen"}>
         <Providers>
           <Navbar  />
+          <Analytics /> {/* ✅ Adicionando o componente no client */}
           {children}
         </Providers>
       </body>
