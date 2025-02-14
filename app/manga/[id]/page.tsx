@@ -445,6 +445,17 @@ export default function MangaPage({
         >
           Dropado
         </button>
+        <button
+          type="button"
+          onClick={() => setEditData({ ...editData!, status: "Concluido" })}
+          className={`px-4 py-2 rounded ${
+            editData?.status === "Concluido"
+              ? "bg-blue-600 text-white"
+              : "bg-zinc-800 text-zinc-400"
+          }`}
+        >
+          Concluido
+        </button>
       </div>
     </div>
             <Button

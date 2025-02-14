@@ -35,6 +35,7 @@ enum MangaStatus {
   Lendo
   PretendoLer
   Dropado
+  Concluido
 }
 model Manga {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId

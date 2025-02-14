@@ -48,6 +48,13 @@ export default function Home() {
             >
               Dropado
             </Button>
+            <Button
+              variant="secondary"
+              onClick={() => handleStatusChange("Concluido")}
+              disabled={status === "Concluido"}
+            >
+              Concluido
+            </Button>
           </div>
 
           {/* Campo de busca */}
