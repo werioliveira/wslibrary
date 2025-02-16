@@ -1,21 +1,28 @@
 
 import { getUserId } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 
 export async function POST(req: NextRequest) {
   const userId = await getUserId(req);
   if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
   try {
     const { fileName, mangaId, fileContent } = await req.json();
 
     if (!fileName || !mangaId || !fileContent) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
+
+    // Recupera a imagem antiga do mangá
+    const manga = await db.manga.findUnique({
+      where: { id: mangaId },
+      select: { image: true },
+    });
 
     // Converte o conteúdo do arquivo de base64 para Buffer
     const buffer = Buffer.from(fileContent, "base64");
@@ -36,10 +43,12 @@ export async function POST(req: NextRequest) {
       },
       forcePathStyle: true,
     });
- 
+
+    // Gera o novo caminho do arquivo
     const key = `capas/${uuidv4()}-${fileName}`;
 
-    const command = new PutObjectCommand({
+    // Comando para upload
+    const uploadCommand = new PutObjectCommand({
       Bucket: "wslibrary", // Substitua pelo nome correto do bucket
       Key: key,
       Body: buffer,
@@ -47,13 +56,27 @@ export async function POST(req: NextRequest) {
       ACL: "public-read", // Garante que o arquivo seja público
     });
 
-    await s3.send(command);
+    await s3.send(uploadCommand);
 
     const imageUrl = `https://minio.werioliveira.shop/wslibrary/${key}`;
+
+    // Atualiza a imagem no banco de dados
     await db.manga.update({
       where: { id: mangaId },
       data: { image: imageUrl },
     });
+
+    // Se existir uma imagem antiga, excluí-la
+    if (manga?.image) {
+      const oldKey = manga.image.split("/").slice(-2).join("/"); // Extrai `capas/arquivo.jpg`
+
+      const deleteCommand = new DeleteObjectCommand({
+        Bucket: "wslibrary",
+        Key: oldKey,
+      });
+
+      await s3.send(deleteCommand);
+    }
 
     return NextResponse.json({ imageUrl }, { status: 200 });
   } catch (error) {
