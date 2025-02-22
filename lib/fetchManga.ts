@@ -314,7 +314,8 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
               manga.user.discordId,
               manga.name,
               matchingManga.chapter,
-              matchingManga.link
+              matchingManga.link,
+              manga.image
             );
             discordNotifications.push(discordNotification);
           }
