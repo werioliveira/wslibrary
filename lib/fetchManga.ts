@@ -315,7 +315,6 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
               manga.name,
               matchingManga.chapter,
               matchingManga.link,
-              manga.image
             );
             discordNotifications.push(discordNotification);
           }

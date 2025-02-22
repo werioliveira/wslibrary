@@ -7,7 +7,6 @@ import { createPrivateThread, addUserToThread, sendMessageToThread } from "./dis
  * @param mangaName Nome do mangá.
  * @param newChapter Capítulo novo.
  * @param link Link para o capítulo.
- * @param image URL da capa do mangá.
  */
 export async function notifyUserAboutNewChapter(
   channelId: string,
@@ -15,7 +14,6 @@ export async function notifyUserAboutNewChapter(
   mangaName: string,
   newChapter: number,
   link: string,
-  image: string
 ) {
   const threadName = `${mangaName}`;
   const threadId = await createPrivateThread(channelId, threadName);
@@ -33,18 +31,7 @@ export async function notifyUserAboutNewChapter(
 
   const message = `Olá! Um novo capítulo de **${mangaName}** está disponível!\n\n**Capítulo:** ${newChapter}\n[Leia agora](${link})`;
 
-  const embed = {
-    title: `Novo capítulo de ${mangaName}!`,
-    description: `**Capítulo:** ${newChapter}\n[Leia agora](${link})`,
-    color: 0x00A2E8, // Cor azul (pode ser alterada)
-    image: { url: image }, // Adiciona a capa do mangá
-    footer: { text: "Receba notificações automáticas de novos capítulos!" }
-  };
-
-  // Converte a mensagem e a embed para JSON string
-  const payload = JSON.stringify({ content: message, embeds: [embed] });
-
-  const sent = await sendMessageToThread(threadId, payload);
+  const sent = await sendMessageToThread(threadId, message);
 
   if (!sent) {
     console.error(`Falha ao enviar mensagem na thread ${threadId}`);
