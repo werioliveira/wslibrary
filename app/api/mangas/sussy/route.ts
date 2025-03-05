@@ -43,7 +43,7 @@ export async function GET() {
 
     const data = await response.json();
 // Transformar a resposta da API no formato desejado
-    const baseUrl = 'https://www.sussytoons.site/';
+    const baseUrl = 'https://www.sussytoons.wtf/';
     const formattedResponse = {
       mangas: data.resultados.map((obra: any) => {
         const latestChapter = obra.ultimos_capitulos[0]; // Pega o último capítulo
