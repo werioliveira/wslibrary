@@ -31,7 +31,7 @@ function createLink(manga: Manga) {
 }
 */
 export async function GET() {
-  const apiUrl = 'https://api-dev.sussytoons.site/obras/novos-capitulos?pagina=1&limite=24';
+  const apiUrl = 'https://api.sussytoons.wtf/obras/novos-capitulos?pagina=1&limite=24';
  
   try {
     const response = await fetch(apiUrl, {
