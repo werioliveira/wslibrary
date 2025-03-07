@@ -13,6 +13,7 @@ export async function GET() {
       `${baseUrl}/api/mangas/lermangas`,
       `${baseUrl}/api/mangas/slimer`,	
       `${baseUrl}/api/mangas/hteca`,
+      `${baseUrl}/api/mangas/lunar`,
 
       //`${baseUrl}/api/mangas/oldSussy`,
     ];

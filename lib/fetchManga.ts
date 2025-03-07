@@ -129,6 +129,39 @@ export function parseSlimeread(html: string): ScrapedManga[] {
 
   return results;
 }
+export function parseLunarScan(html: string): ScrapedManga[] {
+  const $ = cheerio.load(html);
+  const results: ScrapedManga[] = [];
+
+  // Seleciona a div que contém tudo
+  $("#loop-content .page-listing-item").each((i, item) => {
+    // Dentro de cada "page-listing-item", pega todas as divs de mangás
+    $(item).find(".col-6.col-md-3.badge-pos-2 .page-item-detail.manga").each((j, mangaEl) => {
+      // Extrai o título do mangá
+      const title = $(mangaEl).find(".post-title a").first().text().trim();
+      const link = $(mangaEl).find(".post-title a").first().attr("href")?.trim();
+
+      if (title && link) {
+        // Pega o último capítulo listado
+        const lastChapterEl = $(mangaEl).find(".list-chapter .chapter-item a").first();
+        const chapterText = lastChapterEl.text().trim();
+        const chapter = chapterText ? parseInt(chapterText.match(/\d+/)?.[0] ?? "0", 10) : 0;
+        const chapterLink = lastChapterEl.attr("href")?.trim();
+
+        if (chapter && chapterLink) {
+          results.push({
+            title,
+            link: chapterLink,
+            chapter,
+          });
+        }
+      }
+    });
+  });
+
+  return results;
+}
+
 export function parseOldiSussytoons(html: string): ScrapedManga[] {
   const $ = cheerio.load(html);
   const results: ScrapedManga[] = [];
