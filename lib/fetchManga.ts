@@ -108,27 +108,34 @@ export function parseSlimeread(html: string): ScrapedManga[] {
   const $ = cheerio.load(html);
   const results: ScrapedManga[] = [];
 
-  // Seleciona os elementos que representam mangás
-  const mangaElements = $(".tw-ufa .group.relative");
+  // Seleciona os blocos principais onde os mangás estão listados
+  $(".tw-ufa .tw-dfa .grid.tw-kr").each((i, section) => {
+    // Para cada seção, pega os mangás individuais
+    $(section).find(".group.relative.tw-vm").each((j, mangaEl) => {
+      // Título do mangá
+      const titleEl = $(mangaEl).find("a[aria-label]").first();
+      const title = titleEl.text().trim();
+      const link = titleEl.attr("href")?.trim();
 
-  mangaElements.each((i, el) => {
-    // Extrai o título do mangá
-    const title = $(el).find("a[aria-label]").first().text().trim();
-    
-    // Extrai o link do mangá
-    const link = $(el).find("a[aria-label]").first().attr("href")?.trim();
+      // Último capítulo disponível
+      const chapterEl = $(mangaEl).find(".tw-ufa a.tw-wt").last();
+      const chapterText = chapterEl.text().trim();
+      const chapterLink = chapterEl.attr("href")?.trim();
+      const chapter = chapterText ? parseInt(chapterText.match(/\d+/)?.[0] ?? "0", 10) : 0;
 
-    // Extrai o capítulo mais recente
-    const chapterText = $(el).closest(".tw-ufa").find("a.tw-wt").last().text().trim();
-    const chapter = chapterText ? parseInt(chapterText.match(/\d+/)?.[0] ?? "0", 10) : 0;
-
-    if (title && link) {
-      results.push({ title, link: `https://slimeread.com${link}`, chapter });
-    }
+      if (title && link && chapterLink) {
+        results.push({
+          title,
+          link: `https://slimeread.com${link}`,
+          chapter,
+        });
+      }
+    });
   });
 
   return results;
 }
+
 export function parseLunarScan(html: string): ScrapedManga[] {
   const $ = cheerio.load(html);
   const results: ScrapedManga[] = [];
@@ -151,7 +158,7 @@ export function parseLunarScan(html: string): ScrapedManga[] {
         if (chapter && chapterLink) {
           results.push({
             title,
-            link: chapterLink,
+            link,
             chapter,
           });
         }
