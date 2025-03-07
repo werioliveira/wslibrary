@@ -12,7 +12,6 @@ export async function GET() {
     const mangas = (await Promise.all(
       urls.map((url) => fetchMangasFromSite(url, parseSlimeread, "Slime Read"))
     )).flat();
-    console.log(mangas)
     return NextResponse.json({ mangas }, { status: 200 });
   } catch (error) {
     console.error("Erro no scraping Slime Read:", error);
