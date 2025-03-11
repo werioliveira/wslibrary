@@ -354,6 +354,15 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
 
   const pushMessages: any[] = [];
   const discordNotifications: Promise<any>[] = [];
+  const updatedMangas: {
+    id: string;
+    name: string;
+    oldChapter: number;
+    newChapter: number;
+    source: string;
+    link: string;
+    userId: string;
+  }[] = [];
 
   for (const manga of userMangas) {
     const nameToSearch = manga.name.trim().toLowerCase();
@@ -397,6 +406,16 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
 
           console.log(`Manga ID: ${manga.id} atualizado com sucesso!`);
 
+          updatedMangas.push({
+            id: manga.id,
+            name: manga.name,
+            oldChapter: manga.chapter,
+            newChapter: matchingManga.chapter,
+            source: matchingManga.source,
+            link: matchingManga.link,
+            userId: manga.userId,
+          });
+
           if (manga.user.discordId && manga.status === "Lendo") {
             const discordNotification = notifyUserAboutNewChapter(
               process.env.DISCORD_CHANNEL_ID ?? "1321316349234118716",
@@ -428,7 +447,10 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
   if (pushMessages.length > 0) {
     await sendPushNotificationsBatch(pushMessages);
   }
+
+  return updatedMangas;
 }
+
 
 
 // Função para deduplicar mangás baseando-se no título

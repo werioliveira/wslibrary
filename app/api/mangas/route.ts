@@ -49,6 +49,7 @@ export async function GET() {
 
     // Processa mangás únicos
     const notifications = await processMangas(uniqueMangas);
+    
 
     return NextResponse.json({ mangas: notifications }, { status: 200 });
   } catch (error) {
