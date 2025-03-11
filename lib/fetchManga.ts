@@ -136,6 +136,65 @@ export function parseSlimeread(html: string): ScrapedManga[] {
   return results;
 }
 
+// Função específica para parsing do site Egotoons
+export function parseEgotoons(html: string): ScrapedManga[] {
+  const $ = cheerio.load(html);
+  const results: ScrapedManga[] = [];
+
+  $(".manga-list .manga-card").each((_, el) => {
+    const titleEl = $(el).find(".manga-title").first();
+    const title = titleEl.text().trim();
+    const mangaRelativeLink = titleEl.attr("href")?.trim();
+    const mangaLink = mangaRelativeLink ? `https://egotoons.com${mangaRelativeLink}` : "";
+
+    const lastChapterEl = $(el).find(".chapters-list .chapter-row").first();
+    const chapterText = lastChapterEl.find(".chapter-number").text().trim();
+    const chapterMatch = chapterText.match(/\d+/);
+    const chapter = chapterMatch ? parseInt(chapterMatch[0], 10) : 0;
+    const chapterRelativeLink = lastChapterEl.attr("href")?.trim();
+    const chapterLink = chapterRelativeLink ? `https://egotoons.com${chapterRelativeLink}` : "";
+
+    if (title && mangaLink && chapterLink) {
+      results.push({
+        title,
+        link: mangaLink,
+        chapter,
+      });
+    }
+  });
+
+  return results;
+}
+// Função específica para parsing do site Egotoons
+export function parseYushukeMangas(html: string): ScrapedManga[] {
+  const $ = cheerio.load(html);
+  const results: ScrapedManga[] = [];
+
+  $(".manga-list .manga-card").each((_, el) => {
+    const titleEl = $(el).find(".manga-title").first();
+    const title = titleEl.text().trim();
+    const mangaRelativeLink = titleEl.attr("href")?.trim();
+    const mangaLink = mangaRelativeLink ? `https://new.yushukemangas.com${mangaRelativeLink}` : "";
+
+    const lastChapterEl = $(el).find(".chapters-list .chapter-row").first();
+    const chapterText = lastChapterEl.find(".chapter-number").text().trim();
+    const chapterMatch = chapterText.match(/\d+/);
+    const chapter = chapterMatch ? parseInt(chapterMatch[0], 10) : 0;
+    const chapterRelativeLink = lastChapterEl.attr("href")?.trim();
+    const chapterLink = chapterRelativeLink ? `https://new.yushukemangas.com${chapterRelativeLink}` : "";
+
+    if (title && mangaLink && chapterLink) {
+      results.push({
+        title,
+        link: mangaLink,
+        chapter,
+      });
+    }
+  });
+
+  return results;
+}
+
 export function parseLunarScan(html: string): ScrapedManga[] {
   const $ = cheerio.load(html);
   const results: ScrapedManga[] = [];
