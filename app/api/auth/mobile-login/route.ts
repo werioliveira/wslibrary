@@ -37,8 +37,7 @@ export async function POST(req: Request) {
     // Criar um token JWT de sessão
     const sessionToken = jwt.sign(
       { id: user.id, email: user.email, name: user.name, image: user.image },
-      process.env.AUTH_SECRET!,
-      { expiresIn: "7d" }
+      process.env.AUTH_SECRET!
     );
 
     return NextResponse.json({ token: sessionToken, user });
