@@ -26,7 +26,7 @@ export default function Home() {
     <main className="container mx-auto py-8 relative">
       {session ? (
         <>
-          <div className="flex justify-center mb-5 gap-4">
+          <div className="flex flex-wrap justify-center mb-5 gap-2 px-4">
             <Button
               variant="secondary"
               onClick={() => handleStatusChange("Lendo")}
