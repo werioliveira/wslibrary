@@ -195,6 +195,66 @@ export function parseYushukeMangas(html: string): ScrapedManga[] {
   return results;
 }
 
+export function parseManhastro(html: string): ScrapedManga[] {
+  const $ = cheerio.load(html);
+  const results: ScrapedManga[] = [];
+
+  // Select all manga items in the page
+  $('.page-item-detail.manga').each((_, item) => {
+    // Extract title and link
+    const titleEl = $(item).find('.post-title h3 a');
+    const title = titleEl.text().trim();
+    const link = titleEl.attr('href')?.trim();
+
+    // Extract latest chapter
+    const lastChapterEl = $(item).find('.list-chapter .chapter-item').first();
+    const chapterText = lastChapterEl.find('.chapter a').text().trim();
+    const chapter = chapterText 
+      ? parseInt(chapterText.match(/\d+/)?.[0] ?? '0', 10)
+      : 0;
+
+    // Add to results if we have both title and link
+    if (title && link) {
+      results.push({
+        title,
+        link,
+        chapter,
+      });
+    }
+  });
+
+  return results;
+}
+export function parseReadMangas(html: string): ScrapedManga[] {
+  const $ = cheerio.load(html);
+  const results: ScrapedManga[] = [];
+
+  // Select all manga articles within the grid
+  $('div[id^="S:"] a').each((_, item) => {
+    // Extract title from h3
+    const title = $(item).find('h3').text().trim();
+    
+    // Extract link
+    const link = 'https://app.loobyt.com' + $(item).attr('href')?.trim();
+
+    // Extract chapter number
+    const chapterText = $(item).find('.text-muted-foreground span').first().text().trim();
+    const chapter = chapterText
+      ? parseInt(chapterText.match(/\d+/)?.[0] ?? '0', 10)
+      : 0;
+
+    // Add to results if we have both title and link
+    if (title && link && chapter) {
+      results.push({
+        title,
+        link,
+        chapter,
+      });
+    }
+  });
+
+  return results;
+}
 export function parseLunarScan(html: string): ScrapedManga[] {
   const $ = cheerio.load(html);
   const results: ScrapedManga[] = [];
