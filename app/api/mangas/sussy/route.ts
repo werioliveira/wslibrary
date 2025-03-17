@@ -37,56 +37,61 @@ export async function GET() {
     const response = await fetch(apiUrl, {
       headers: {
         'Content-Type': 'application/json',
-        'Scan-id': '1', // Se necessário
+        'Scan-id': '1',
       },
     });
 
-    const data = await response.json();
-// Transformar a resposta da API no formato desejado
+    // Check if response is ok and is JSON
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error(`Expected JSON but got ${contentType}`);
+    }
+
+    let data;
+    try {
+      data = await response.json();
+    } catch (parseError) {
+      console.error('JSON Parse Error:', parseError);
+      // If JSON parsing fails, return empty manga list instead of error
+      return NextResponse.json({ mangas: [] }, { status: 200 });
+    }
+
+    // Validate data structure
+    if (!data || !data.resultados || !Array.isArray(data.resultados)) {
+      console.error('Invalid API response structure');
+      return NextResponse.json({ mangas: [] }, { status: 200 });
+    }
+
     const baseUrl = 'https://www.sussytoons.wtf/';
     const formattedResponse = {
       mangas: data.resultados.map((obra: any) => {
-        const latestChapter = obra.ultimos_capitulos[0]; // Pega o último capítulo
-       //const link = createLink(obra);
-        return {
-          title: obra.obr_nome,
- //         link: link,
-          link: `${baseUrl}obra/${obra.obr_id}/${obra.obr_slug}/`,
-          chapter: latestChapter.cap_numero,
-          source: "New Sussy",
-        };
-      }),
+        try {
+          const latestChapter = obra.ultimos_capitulos?.[0];
+          if (!latestChapter || !obra.obr_id || !obra.obr_slug) {
+            return null;
+          }
+
+          return {
+            title: obra.obr_nome || 'Unknown Title',
+            link: `${baseUrl}obra/${obra.obr_id}/${obra.obr_slug}/`,
+            chapter: latestChapter.cap_numero || 0,
+            source: "New Sussy",
+          };
+        } catch (mapError) {
+          console.error('Error mapping manga:', mapError);
+          return null;
+        }
+      }).filter(Boolean), // Remove null entries
     };
+
     return NextResponse.json(formattedResponse, { status: 200 });
   } catch (error) {
-    console.log('Error:', error);
-    return NextResponse.json({ error: 'Erro ao acessar a API' }, { status: 500 });
+    console.error('Sussy API Error:', error);
+    // Return empty array instead of error to prevent breaking the main manga list
+    return NextResponse.json({ mangas: [] }, { status: 200 });
   }
-  /*
-  
-  try {
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'], // Necessário em ambientes como Vercel ou Docker
-    });
-
-    const page = await browser.newPage();
-    await page.goto('https://new.sussytoons.site/', { waitUntil: 'networkidle2' });
-
-    // Aguarde até que um seletor específico esteja disponível, caso necessário
-    await page.waitForSelector('.css-r8mu0h',{ timeout: 30000 }); // Substitua pelo seletor relevante
-
-    // Extraia o HTML renderizado
-    const content = await page.content();
-
-    await browser.close();
-    // Realizar o scraping diretamente
-    const mangas = parserNewSussytoons(content)
-    return NextResponse.json({ mangas }, { status: 200 });
-  } catch (error) {
-    console.error('Scraping error:', error);
-    return NextResponse.json({ error:'Scraping error:' }, { status: 500 });
-
-  }
-  */
 }

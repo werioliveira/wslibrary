@@ -4,8 +4,33 @@ import { NextResponse } from "next/server";
 export async function GET() {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    const TIMEOUT_MS = 10000;
 
-    // Rotas de scraping individuais
+    const timeoutPromise = (ms: number) => 
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), ms)
+      );
+
+    const fetchWithTimeout = async (endpoint: string) => {
+      try {
+        const response = await Promise.race([
+          fetch(endpoint),
+          timeoutPromise(TIMEOUT_MS)
+        ]);
+        
+        if (response instanceof Response && response.ok) {
+          const data = await response.json();
+          if (data && Array.isArray(data.mangas)) {
+            return data;
+          }
+        }
+        return null;
+      } catch (err) {
+        console.log(`Erro ou timeout ao buscar ${endpoint}`);
+        return null;
+      }
+    };
+
     const endpoints = [
       `${baseUrl}/api/mangas/seitacelestial`,
       `${baseUrl}/api/mangas/sussy`,
@@ -24,36 +49,23 @@ export async function GET() {
       //`${baseUrl}/api/mangas/oldSussy`,
     ];
 
-    // Scraping paralelo com exclusão de endpoints falhos
-    const results = await Promise.all(
-      endpoints.map(async (endpoint) => {
-        try {
-          const res = await fetch(endpoint);
-          if (!res.ok) {
-            return null; // Ignora o endpoint
-          }
-          const data = await res.json();
-          if (!data || !Array.isArray(data.mangas)) {
+    // Process all endpoints simultaneously
+    const results = (await Promise.all(
+      endpoints.map(endpoint => fetchWithTimeout(endpoint))
+    )).filter(result => result !== null);
 
-            return null; // Ignora o endpoint
-          }
-          return data;
-        } catch (err) {
-          console.log(`Erro ao buscar ${endpoint}:`, err);
-          return null; // Ignora o endpoint em caso de erro
-        }
-      })
-    );
-
-    // Remove resultados nulos
-    const validResults = results.filter((result) => result !== null);
-    // Consolida todos os mangas
-    const allMangas = validResults.flatMap((result) => result.mangas);
+    const allMangas = results.flatMap(result => result.mangas);
     const uniqueMangas = deduplicateMangas(allMangas);
 
-    // Processa mangás únicos
-    const notifications = await processMangas(uniqueMangas);
+    // Process mangas in smaller batches
+    const MANGA_BATCH_SIZE = 50;
+    let notifications = [];
     
+    for (let i = 0; i < uniqueMangas.length; i += MANGA_BATCH_SIZE) {
+      const mangaBatch = uniqueMangas.slice(i, i + MANGA_BATCH_SIZE);
+      const batchNotifications = await processMangas(mangaBatch);
+      notifications.push(...batchNotifications);
+    }
 
     return NextResponse.json({ mangas: notifications }, { status: 200 });
   } catch (error) {
