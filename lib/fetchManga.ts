@@ -4,14 +4,22 @@ import * as cheerio from "cheerio";
 import Fuse from "fuse.js"; // Importando o Fuse.js
 import { notifyUserAboutNewChapter } from "./mangaNotifications";
 
-// Interface para o manga retornado da API (scraping)
+
+interface MangaChapter {
+  number: number;
+  link: string;
+  timeAgo: string;
+}
+
 interface ScrapedManga {
   title: string;
   link: string;
   type?: string;
   chapter: number;
   source?: string;
+  chapters?: MangaChapter[];
 }
+
 interface NewChapter {
   chapter: number;
   source: string;
@@ -53,21 +61,48 @@ export async function fetchMangasFromHteca(url: string, parseFunction: (data: st
 
 
 // Função específica para parsing do site Seita Celestial
+// First, let's add a new interface to handle multiple chapters
+// Update the interfaces at the top of the file
+
 export function parseSeitaCelestial(html: string): ScrapedManga[] {
   const $ = cheerio.load(html);
   const results: ScrapedManga[] = [];
 
-  $(".bixbox .bsx").each((i, el) => {
-    const title = $(el).find("a").attr("title")?.trim();
-    const link = $(el).find("a").attr("href");
-    const type = $(el).find(".type").text()?.trim();
-    const chapterText = $(el).find(".epxs").text()?.trim();
-    const chapter = chapterText
-      ? parseInt(chapterText.match(/\d+/)?.[0] ?? "0", 10)
-      : 0;
+  // Select all manga items in the listupd
+  $('.listupd .utao').each((_, el) => {
+    // Extract title and link from the series link
+    const seriesLink = $(el).find('a.series');
+    const title = seriesLink.attr('title')?.trim();
+    const link = seriesLink.attr('href')?.trim();
 
-    if (title && link) {
-      results.push({ title, link, type, chapter });
+    // Extract all chapters from the list
+    const chapters: MangaChapter[] = [];
+    $(el).find('ul li').each((_, chapterEl) => {
+      const chapterLink = $(chapterEl).find('a');
+      const chapterText = chapterLink.text()?.trim();
+      const timeAgo = $(chapterEl).find('span').text()?.trim();
+      const chapter = chapterText
+        ? parseInt(chapterText.match(/\d+/)?.[0] ?? '0', 10)
+        : 0;
+
+      if (chapter && chapterLink.attr('href')) {
+        chapters.push({
+          number: chapter,
+          link: chapterLink.attr('href') || '',
+          timeAgo: timeAgo || '',
+        });
+      }
+    });
+
+    // Add to results if we have both title and link and at least one chapter
+    if (title && link && chapters.length > 0) {
+      results.push({
+        title,
+        link,
+        chapter: chapters[0].number, // Keep the highest/latest chapter as the main chapter
+        chapters: chapters, // Add all chapters as additional information
+        source: 'Seita Celestial',
+      });
     }
   });
 
@@ -107,11 +142,13 @@ export function parseLerMangas(html: string): ScrapedManga[] {
 export function parseSlimeread(html: string): ScrapedManga[] {
   const $ = cheerio.load(html);
   const results: ScrapedManga[] = [];
-
+  
   // Seleciona os blocos principais onde os mangás estão listados
   $(".tw-ufa .tw-dfa .grid.tw-kr").each((i, section) => {
+    console.log(section)
     // Para cada seção, pega os mangás individuais
     $(section).find(".group.relative.tw-vm").each((j, mangaEl) => {
+
       // Título do mangá
       const titleEl = $(mangaEl).find("a[aria-label]").first();
       const title = titleEl.text().trim();
@@ -474,11 +511,23 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
 
     if (bestMatch && bestMatch.item.chapter > manga.chapter) {
       const matchingManga = bestMatch.item;
+      const userCurrentChapter = manga.chapter;
+      let linkToUse = matchingManga.link; // Default to main manga page
+
+      // Check if the site provides multiple chapters
+      if (matchingManga.chapters && matchingManga.chapters.length > 0) {
+        const sortedChapters = matchingManga.chapters.sort((a: MangaChapter, b: MangaChapter) => b.number - a.number);
+        
+        // If user is just one chapter behind, use the direct chapter link
+        if (userCurrentChapter === sortedChapters[0].number - 1) {
+          linkToUse = sortedChapters[0].link;
+        }
+      }
 
       const newChapterData = {
         chapter: matchingManga.chapter,
         source: matchingManga.source,
-        link: matchingManga.link,
+        link: linkToUse,
       };
 
       const newChapter = manga.newChapter as unknown as NewChapter;

@@ -5,7 +5,7 @@ export async function GET() {
   try {
     // URLs para scraping
     const urls = [
-      `https://seitacelestial.com/comics/?page=1&order=update`,
+      `https://seitacelestial.com`,
     ];
 
     // Realizar o scraping diretamente
