@@ -27,14 +27,27 @@ interface NewChapter {
 }
 // Função genérica para buscar dados de um site
 export async function fetchMangasFromSite(url: string, parseFunction: (data: string) => ScrapedManga[], source: string): Promise<ScrapedManga[]> {
-  const { data } = await axios.get(url);
+  const { data } = await axios.get(url, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.5',
+      'Accept-Encoding': 'gzip, deflate, br',
+      'Connection': 'keep-alive',
+      'Upgrade-Insecure-Requests': '1',
+      'Sec-Fetch-Dest': 'document',
+      'Sec-Fetch-Mode': 'navigate',
+      'Sec-Fetch-Site': 'none',
+      'Sec-Fetch-User': '?1',
+      'Cache-Control': 'max-age=0'
+    }
+  });
 
   const mangas = parseFunction(data);
   
-  // Adiciona a origem para cada manga
   return mangas.map(manga => ({
     ...manga,
-    source,  // Adiciona o nome do site
+    source,
   }));
 }
 // Função genérica para buscar dados de um site
@@ -117,25 +130,41 @@ export function parseLerMangas(html: string): ScrapedManga[] {
 
   // Processa cada mangá individualmente
   mangaElements.each((i, el) => {
-    // Tentativa de pegar o título do mangá diretamente do texto do link
+    // Título do mangá
     const title = $(el).find(".post-title h3 a").text()?.trim();
     // Link do mangá
     const link = $(el).find(".post-title h3 a").attr("href")?.trim();
 
-    // Número do capítulo mais recente
-    const chapterText = $(el)
-      .find(".list-chapter .chapter-item:first-child .chapter a")
-      .text()
-      ?.trim();
-    const chapter = chapterText
-      ? parseInt(chapterText.match(/\d+/)?.[0] ?? "0", 10)
-      : 0;
+    // Extract all chapters from the list
+    const chapters: MangaChapter[] = [];
+    $(el).find(".list-chapter .chapter-item").each((_, chapterEl) => {
+      const chapterLink = $(chapterEl).find(".chapter a");
+      const chapterText = chapterLink.text()?.trim();
+      const timeAgo = $(chapterEl).find(".post-on").text()?.trim();
+      const chapter = chapterText
+        ? parseInt(chapterText.match(/\d+/)?.[0] ?? "0", 10)
+        : 0;
 
-    // Adiciona ao resultado se o título e link existirem
-    if (title && link) {
-      results.push({ title, link, chapter });
+      if (chapter && chapterLink.attr("href")) {
+        chapters.push({
+          number: chapter,
+          link: chapterLink.attr("href") || "",
+          timeAgo: timeAgo || "",
+        });
+      }
+    });
+
+    // Add to results if we have both title and link and at least one chapter
+    if (title && link && chapters.length > 0) {
+      results.push({
+        title,
+        link,
+        chapter: chapters[0].number, // Keep the highest/latest chapter as the main chapter
+        chapters, // Add all chapters as additional information
+      });
     }
   });
+  
   return results;
 }
 // Função específica para parsing do site Slimeread
@@ -143,31 +172,41 @@ export function parseSlimeread(html: string): ScrapedManga[] {
   const $ = cheerio.load(html);
   const results: ScrapedManga[] = [];
   
-  // Seleciona os blocos principais onde os mangás estão listados
-  $(".tw-ufa .tw-dfa .grid.tw-kr").each((i, section) => {
-    console.log(section)
-    // Para cada seção, pega os mangás individuais
-    $(section).find(".group.relative.tw-vm").each((j, mangaEl) => {
+  // Select manga items
+  $(".group.relative.tw-vm").each((_, mangaEl) => {
+    // Title and main link
+    const titleEl = $(mangaEl).find("a[aria-label]").first();
+    const title = titleEl.text().trim();
+    const link = titleEl.attr("href")?.trim();
 
-      // Título do mangá
-      const titleEl = $(mangaEl).find("a[aria-label]").first();
-      const title = titleEl.text().trim();
-      const link = titleEl.attr("href")?.trim();
+    // Extract all chapters
+    const chapters: MangaChapter[] = [];
+    $(mangaEl).find(".tw-ufa .tw-wt").each((_, chapterEl) => {
+      const chapterText = $(chapterEl).text().trim();
+      const chapterLink = $(chapterEl).attr("href")?.trim();
+      const timeAgo = $(mangaEl).find(".tw-paa").text()?.trim() || "";
+      
+      const chapter = chapterText 
+        ? parseInt(chapterText.match(/\d+/)?.[0] ?? "0", 10)
+        : 0;
 
-      // Último capítulo disponível
-      const chapterEl = $(mangaEl).find(".tw-ufa a.tw-wt").last();
-      const chapterText = chapterEl.text().trim();
-      const chapterLink = chapterEl.attr("href")?.trim();
-      const chapter = chapterText ? parseInt(chapterText.match(/\d+/)?.[0] ?? "0", 10) : 0;
-
-      if (title && link && chapterLink) {
-        results.push({
-          title,
-          link: `https://slimeread.com${link}`,
-          chapter,
+      if (chapter && chapterLink) {
+        chapters.push({
+          number: chapter,
+          link: `https://slimeread.com${chapterLink}`,
+          timeAgo,
         });
       }
     });
+
+    if (title && link && chapters.length > 0) {
+      results.push({
+        title,
+        link: `https://slimeread.com${link}`,
+        chapter: chapters[0].number,
+        chapters,
+      });
+    }
   });
 
   return results;
@@ -184,25 +223,38 @@ export function parseEgotoons(html: string): ScrapedManga[] {
     const mangaRelativeLink = titleEl.attr("href")?.trim();
     const mangaLink = mangaRelativeLink ? `https://egotoons.com${mangaRelativeLink}` : "";
 
-    const lastChapterEl = $(el).find(".chapters-list .chapter-row").first();
-    const chapterText = lastChapterEl.find(".chapter-number").text().trim();
-    const chapterMatch = chapterText.match(/\d+/);
-    const chapter = chapterMatch ? parseInt(chapterMatch[0], 10) : 0;
-    const chapterRelativeLink = lastChapterEl.attr("href")?.trim();
-    const chapterLink = chapterRelativeLink ? `https://egotoons.com${chapterRelativeLink}` : "";
+    // Extract all chapters from the list
+    const chapters: MangaChapter[] = [];
+    $(el).find(".chapters-list .chapter-row").each((_, chapterEl) => {
+      const chapterLink = $(chapterEl).attr("href")?.trim();
+      const chapterText = $(chapterEl).find(".chapter-number").text().trim();
+      const timeAgo = $(chapterEl).find(".chapter-time").text().trim();
+      const chapter = chapterText
+        ? parseInt(chapterText.match(/\d+/)?.[0] ?? "0", 10)
+        : 0;
 
-    if (title && mangaLink && chapterLink) {
+      if (chapter && chapterLink) {
+        chapters.push({
+          number: chapter,
+          link: `https://egotoons.com${chapterLink}`,
+          timeAgo,
+        });
+      }
+    });
+
+    if (title && mangaLink && chapters.length > 0) {
       results.push({
         title,
         link: mangaLink,
-        chapter,
+        chapter: chapters[0].number,
+        chapters,
       });
     }
   });
 
   return results;
 }
-// Função específica para parsing do site Egotoons
+// Função específica para parsing do site Yushuke
 export function parseYushukeMangas(html: string): ScrapedManga[] {
   const $ = cheerio.load(html);
   const results: ScrapedManga[] = [];
@@ -213,18 +265,31 @@ export function parseYushukeMangas(html: string): ScrapedManga[] {
     const mangaRelativeLink = titleEl.attr("href")?.trim();
     const mangaLink = mangaRelativeLink ? `https://new.yushukemangas.com${mangaRelativeLink}` : "";
 
-    const lastChapterEl = $(el).find(".chapters-list .chapter-row").first();
-    const chapterText = lastChapterEl.find(".chapter-number").text().trim();
-    const chapterMatch = chapterText.match(/\d+/);
-    const chapter = chapterMatch ? parseInt(chapterMatch[0], 10) : 0;
-    const chapterRelativeLink = lastChapterEl.attr("href")?.trim();
-    const chapterLink = chapterRelativeLink ? `https://new.yushukemangas.com${chapterRelativeLink}` : "";
+    // Extract all chapters from the list
+    const chapters: MangaChapter[] = [];
+    $(el).find(".chapters-list .chapter-row").each((_, chapterEl) => {
+      const chapterLink = $(chapterEl).attr("href")?.trim();
+      const chapterText = $(chapterEl).find(".chapter-number").text().trim();
+      const timeAgo = $(chapterEl).find(".chapter-time").text().trim();
+      const chapter = chapterText
+        ? parseInt(chapterText.match(/\d+/)?.[0] ?? "0", 10)
+        : 0;
 
-    if (title && mangaLink && chapterLink) {
+      if (chapter && chapterLink) {
+        chapters.push({
+          number: chapter,
+          link: `https://new.yushukemangas.com${chapterLink}`,
+          timeAgo,
+        });
+      }
+    });
+
+    if (title && mangaLink && chapters.length > 0) {
       results.push({
         title,
         link: mangaLink,
-        chapter,
+        chapter: chapters[0].number,
+        chapters,
       });
     }
   });
@@ -243,19 +308,32 @@ export function parseManhastro(html: string): ScrapedManga[] {
     const title = titleEl.text().trim();
     const link = titleEl.attr('href')?.trim();
 
-    // Extract latest chapter
-    const lastChapterEl = $(item).find('.list-chapter .chapter-item').first();
-    const chapterText = lastChapterEl.find('.chapter a').text().trim();
-    const chapter = chapterText 
-      ? parseInt(chapterText.match(/\d+/)?.[0] ?? '0', 10)
-      : 0;
+    // Extract all chapters from the list
+    const chapters: MangaChapter[] = [];
+    $(item).find('.list-chapter .chapter-item').each((_, chapterEl) => {
+      const chapterLink = $(chapterEl).find('.chapter a');
+      const chapterText = chapterLink.text().trim();
+      const timeAgo = $(chapterEl).find('.post-on').text().trim();
+      const chapter = chapterText 
+        ? parseInt(chapterText.match(/\d+/)?.[0] ?? '0', 10)
+        : 0;
 
-    // Add to results if we have both title and link
-    if (title && link) {
+      if (chapter && chapterLink.attr('href')) {
+        chapters.push({
+          number: chapter,
+          link: chapterLink.attr('href') || '',
+          timeAgo: timeAgo || '',
+        });
+      }
+    });
+
+    // Add to results if we have both title and link and at least one chapter
+    if (title && link && chapters.length > 0) {
       results.push({
         title,
         link,
-        chapter,
+        chapter: chapters[0].number, // Keep the highest/latest chapter as the main chapter
+        chapters, // Add all chapters as additional information
       });
     }
   });
@@ -296,30 +374,41 @@ export function parseLunarScan(html: string): ScrapedManga[] {
   const $ = cheerio.load(html);
   const results: ScrapedManga[] = [];
 
-  // Seleciona a div que contém tudo
-  $("#loop-content .page-listing-item").each((i, item) => {
-    // Dentro de cada "page-listing-item", pega todas as divs de mangás
-    $(item).find(".col-6.col-md-3.badge-pos-2 .page-item-detail.manga").each((j, mangaEl) => {
-      // Extrai o título do mangá
-      const title = $(mangaEl).find(".post-title a").first().text().trim();
-      const link = $(mangaEl).find(".post-title a").first().attr("href")?.trim();
+  // Select all manga items in the page
+  $('.page-item-detail.manga').each((_, item) => {
+    // Extract title and link
+    const titleEl = $(item).find('.post-title h3 a');
+    const title = titleEl.text().trim();
+    const link = titleEl.attr('href')?.trim();
 
-      if (title && link) {
-        // Pega o último capítulo listado
-        const lastChapterEl = $(mangaEl).find(".list-chapter .chapter-item a").first();
-        const chapterText = lastChapterEl.text().trim();
-        const chapter = chapterText ? parseInt(chapterText.match(/\d+/)?.[0] ?? "0", 10) : 0;
-        const chapterLink = lastChapterEl.attr("href")?.trim();
+    // Extract all chapters from the list
+    const chapters: MangaChapter[] = [];
+    $(item).find('.list-chapter .chapter-item').each((_, chapterEl) => {
+      const chapterLink = $(chapterEl).find('.chapter a');
+      const chapterText = chapterLink.text().trim();
+      const timeAgo = $(chapterEl).find('.post-on').text().trim();
+      const chapter = chapterText 
+        ? parseInt(chapterText.match(/\d+/)?.[0] ?? '0', 10)
+        : 0;
 
-        if (chapter && chapterLink) {
-          results.push({
-            title,
-            link,
-            chapter,
-          });
-        }
+      if (chapter && chapterLink.attr('href')) {
+        chapters.push({
+          number: chapter,
+          link: chapterLink.attr('href') || '',
+          timeAgo: timeAgo || '',
+        });
       }
     });
+
+    // Add to results if we have both title and link and at least one chapter
+    if (title && link && chapters.length > 0) {
+      results.push({
+        title,
+        link,
+        chapter: chapters[0].number, // Keep the highest/latest chapter as the main chapter
+        chapters, // Add all chapters as additional information
+      });
+    }
   });
 
   return results;
@@ -328,26 +417,39 @@ export function parseMangaLivre(html: string): ScrapedManga[] {
   const $ = cheerio.load(html);
   const results: ScrapedManga[] = [];
 
-  // Seleciona o conteúdo principal onde os mangás estão listados
-  $(".manga__item").each((i, item) => {
-    // Extrai o título e o link do mangá
-    const title = $(item).find(".post-title h2 a").text().trim();
-    const link = $(item).find(".post-title a").attr("href")?.trim();
+  // Select manga items
+  $(".manga__item").each((_, item) => {
+    const titleEl = $(item).find(".post-title h2 a");
+    const title = titleEl.text().trim();
+    const link = titleEl.attr("href")?.trim();
 
-    if (title && link) {
-      // Extrai o número do último capítulo
-      const lastChapterEl = $(item).find(".list-chapter .chapter-item a").first();
-      const chapterText = lastChapterEl.text().trim();
-      const chapter = chapterText ? parseInt(chapterText.match(/\d+/)?.[0] ?? "0", 10) : 0;
+    // Extract all chapters from the list
+    const chapters: MangaChapter[] = [];
+    $(item).find(".list-chapter .chapter-item").each((_, chapterEl) => {
+      const chapterLink = $(chapterEl).find(".chapter a");
+      const chapterText = chapterLink.text().trim();
+      const timeAgo = $(chapterEl).find(".post-on.font-meta").text().trim();
+      const chapter = chapterText 
+        ? parseInt(chapterText.match(/\d+/)?.[0] ?? "0", 10)
+        : 0;
 
-      if (chapter) {
-        // Adiciona o mangá à lista de resultados
-        results.push({
-          title,
-          link,
-          chapter,
+      if (chapter && chapterLink.attr("href")) {
+        chapters.push({
+          number: chapter,
+          link: chapterLink.attr("href") || "",
+          timeAgo: timeAgo || "",
         });
       }
+    });
+
+    if (title && link && chapters.length > 0) {
+      results.push({
+        title,
+        link,
+        chapter: chapters[0].number,
+        chapters,
+        source: "Manga Livre",
+      });
     }
   });
 
@@ -389,39 +491,68 @@ export function parserNewSussytoons(html: string): ScrapedManga[] {
   const $ = cheerio.load(html);
   const results: ScrapedManga[] = [];
 
+  // Debug: Log the entire HTML
+  console.log('Raw HTML:', html.substring(0, 500) + '...'); // Show first 500 chars
 
-  // Itera sobre cada elemento de manga
-  $('.chakra-stack.css-18y9vo3').each((_, mangaElement) => {
+  // Debug: Check how many manga elements were found
+  const mangaElements = $('.chakra-stack.css-18y9vo3');
+  console.log('Number of manga elements found:', mangaElements.length);
+
+  // Debug: Log the first manga element's HTML if found
+  if (mangaElements.length > 0) {
+    console.log('First manga element HTML:', $(mangaElements[0]).html());
+  }
+
+  mangaElements.each((_, mangaElement) => {
     const element = $(mangaElement);
+
+    // Debug: Log each element's data
+    console.log('Title found:', element.find('.chakra-text.css-15d8el3').text());
+    console.log('Link found:', element.find('.chakra-link.css-134gr64').attr('href'));
+    console.log('Chapters found:', element.find('.chakra-link.css-p51p6n').length);
 
     // Título do manga
     const title = element.find('.chakra-text.css-15d8el3').text().trim();
 
     // Link do manga
-    let link = element.find('.chakra-link.css-1dbs7sg').attr('href')?.trim();
-    link = 'https://new.sussytoons.site' + link;
-    // Imagem do manga
+    let link = element.find('.chakra-link.css-134gr64').attr('href')?.trim();
+    link = 'https://www.sussytoons.wtf' + link;
 
-    // Capítulo mais recente
-    const chapterText = element
-      .find('.chakra-text.css-1aakaxo')
-      .first()
-      .text()
-      .trim();
-    const chapter = chapterText ? parseInt(chapterText.match(/\d+/)?.[0] ?? '0', 10) : 0;
+    // Extract all chapters from the list
+    const chapters: MangaChapter[] = [];
+    element.find('.chakra-link.css-p51p6n').each((_, chapterEl) => {
+      const chapterLink = $(chapterEl).attr('href')?.trim();
+      const chapterText = $(chapterEl).find('.chakra-text.css-9uqpcm').text().trim();
+      const timeAgo = $(chapterEl).find('.chakra-text.css-1ipnh8h').text().trim();
+      
+      const chapter = chapterText
+        ? parseInt(chapterText.match(/\d+/)?.[0] ?? '0', 10)
+        : 0;
 
+      if (chapter && chapterLink) {
+        chapters.push({
+          number: chapter,
+          link: 'https://www.sussytoons.wtf' + chapterLink,
+          timeAgo: timeAgo || '',
+        });
+      }
+    });
 
     // Verifica se o título e link existem antes de adicionar ao resultado
-    if (title && link) {
+    if (title && link && chapters.length > 0) {
       results.push({
         title,
         link,
-        chapter,
+        chapter: chapters[0].number,
+        chapters,
         source: "Sussy"
       });
     }
   });
-  // Retorna os resultados
+
+  // Debug: Log final results
+  console.log('Total results:', results.length);
+  
   return results;
 }
 
