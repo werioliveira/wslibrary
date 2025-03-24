@@ -48,7 +48,7 @@ export async function GET() {
         // Create chapters array from ultimos_capitulos
         const chapters = obra.ultimos_capitulos.map((cap: any) => ({
           number: cap.cap_numero,
-          link: `${baseUrl}capitulo/${obra.obr_id}/${cap.cap_id}/`,
+          link: `${baseUrl}capitulo/${cap.cap_id}/`,
           timeAgo: new Date(cap.cap_lancado_em).toLocaleString(),
         }));
 
