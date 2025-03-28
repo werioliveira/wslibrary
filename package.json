@@ -34,7 +34,7 @@
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.462.0",
     "mongodb": "^6.11.0",
-    "next": ">=15.1.2",
+    "next": ">=15.2.4",
     "next-auth": "^5.0.0-beta.25",
     "node-cron": "^3.0.3",
     "react": "^18.2.0",
