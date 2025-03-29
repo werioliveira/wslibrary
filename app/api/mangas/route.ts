@@ -45,6 +45,7 @@ export async function GET() {
       `${baseUrl}/api/mangas/remangas`,
       `${baseUrl}/api/mangas/manhastro`,
       `${baseUrl}/api/mangas/readMangas`,
+      `${baseUrl}/api/mangas/yomu`,
 
       //`${baseUrl}/api/mangas/oldSussy`,
     ];
@@ -63,8 +64,8 @@ export async function GET() {
     
     for (let i = 0; i < uniqueMangas.length; i += MANGA_BATCH_SIZE) {
       const mangaBatch = uniqueMangas.slice(i, i + MANGA_BATCH_SIZE);
-      const batchNotifications = await processMangas(mangaBatch);
-      notifications.push(...batchNotifications);
+        const batchNotifications = await processMangas(mangaBatch);
+        notifications.push(...batchNotifications);
     }
 
     return NextResponse.json({ mangas: notifications }, { status: 200 });
