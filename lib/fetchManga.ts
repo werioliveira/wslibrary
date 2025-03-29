@@ -684,16 +684,17 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
             link: matchingManga.link,
             userId: manga.userId,
           });
-
-          if (manga.user.discordId && manga.status === "Lendo") {
-            const discordNotification = notifyUserAboutNewChapter(
-              process.env.DISCORD_CHANNEL_ID ?? "1321316349234118716",
-              manga.user.discordId,
-              manga.name,
-              matchingManga.chapter,
-              matchingManga.link,
-            );
-            discordNotifications.push(discordNotification);
+          if(process.env.NODE_ENV != "development"){
+            if (manga.user.discordId && manga.status === "Lendo") {
+              const discordNotification = notifyUserAboutNewChapter(
+                process.env.DISCORD_CHANNEL_ID ?? "1321316349234118716",
+                manga.user.discordId,
+                manga.name,
+                matchingManga.chapter,
+                matchingManga.link,
+              );
+              discordNotifications.push(discordNotification);
+            }
           }
 
           if (manga.user.pushToken && manga.status === "Lendo") {
@@ -711,11 +712,13 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
       }
     }
   }
-
-  await Promise.all(discordNotifications);
-  if (pushMessages.length > 0) {
-    await sendPushNotificationsBatch(pushMessages);
+  if(process.env.NODE_ENV != "development"){
+    await Promise.all(discordNotifications);
+    if (pushMessages.length > 0) {
+      await sendPushNotificationsBatch(pushMessages);
+    }
   }
+
 
   return updatedMangas;
 }
@@ -743,4 +746,49 @@ export function deduplicateMangas(mangas: ScrapedManga[]): ScrapedManga[] {
 
   // Retorna todos os valores únicos
   return Array.from(seenTitles.values());
+}
+export function parseYomuComics(html: string): ScrapedManga[] {
+  const $ = cheerio.load(html);
+  const results: ScrapedManga[] = [];
+
+  // Select all manga items in the listupd
+  $('.listupd .bsx').each((_, el) => {
+    // Extract title and link from the series link
+    const titleEl = $(el).find('.tt a');
+    const title = titleEl.text().trim();
+    const link = titleEl.attr('href')?.trim();
+
+    // Extract all chapters from the list
+    const chapters: MangaChapter[] = [];
+    $(el).find('.chfiv li').each((_, chapterEl) => {
+      const chapterLink = $(chapterEl).find('a');
+      const chapterText = $(chapterEl).find('.fivchap').text().trim();
+      const timeAgo = $(chapterEl).find('.fivtime').text().trim();
+      
+      const chapter = chapterText
+        ? parseInt(chapterText.match(/\d+/)?.[0] ?? '0', 10)
+        : 0;
+
+      if (chapter && chapterLink.attr('href')) {
+        chapters.push({
+          number: chapter,
+          link: chapterLink.attr('href') || '',
+          timeAgo: timeAgo || '',
+        });
+      }
+    });
+
+    // Add to results if we have both title and link and at least one chapter
+    if (title && link && chapters.length > 0) {
+      results.push({
+        title,
+        link,
+        chapter: chapters[0].number, // Keep the highest/latest chapter as the main chapter
+        chapters, // Add all chapters as additional information
+        source: "Yomu Comics",
+      });
+    }
+  });
+
+  return results;
 }
