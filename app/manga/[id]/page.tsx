@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Modal } from "@/components/Modal";
 import MangaPageSkeleton from "@/components/manga-page-skeleton";
+import ShareSection from "@/components/ShareSection";
 
 interface Manga {
   id: string;
@@ -24,6 +25,7 @@ interface Manga {
   linkToWebsite: string;
   status: string;
   website: string;
+  shareId: string;
   hasNewChapter: boolean;
   newChapter: NewChapter,
 }
@@ -311,6 +313,7 @@ export default function MangaPage({
         >
           Upload Image
         </Button>
+        <ShareSection manga={manga} setManga={setManga} />
       </div>
             {manga.hasNewChapter && manga.newChapter && (
       <div className="py-2 mb-4">

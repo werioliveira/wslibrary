@@ -46,6 +46,7 @@ export async function GET() {
       `${baseUrl}/api/mangas/manhastro`,
       `${baseUrl}/api/mangas/readMangas`,
       `${baseUrl}/api/mangas/yomu`,
+      `${baseUrl}/api/mangas/mangaonline`,
 
       //`${baseUrl}/api/mangas/oldSussy`,
     ];

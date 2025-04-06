@@ -49,6 +49,7 @@ model Manga {
   userId    String   @db.ObjectId
   hasNewChapter   Boolean      @default(false) // Indica se há novos capítulos
   newChapter    Json?     // Altera para Json para armazenar o número do capítulo e a origem
+  shareId   String?  // sem o @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)

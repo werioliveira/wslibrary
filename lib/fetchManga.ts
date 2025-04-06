@@ -167,6 +167,53 @@ export function parseLerMangas(html: string): ScrapedManga[] {
   
   return results;
 }
+
+// Função específica para parsing do site https://mangaonline.blog/
+export function parseMangaonline(html: string): ScrapedManga[] {
+  const $ = cheerio.load(html);
+  const results: ScrapedManga[] = [];
+
+  const mangaElements = $(".page-item-detail.manga");
+
+  // Processa cada mangá individualmente
+  mangaElements.each((i, el) => {
+    // Título do mangá
+    const title = $(el).find(".post-title h3 a").text()?.trim();
+    // Link do mangá
+    const link = $(el).find(".post-title h3 a").attr("href")?.trim();
+
+    // Extract all chapters from the list
+    const chapters: MangaChapter[] = [];
+    $(el).find(".list-chapter .chapter-item").each((_, chapterEl) => {
+      const chapterLink = $(chapterEl).find(".chapter a");
+      const chapterText = chapterLink.text()?.trim();
+      const timeAgo = $(chapterEl).find(".post-on").text()?.trim();
+      const chapter = chapterText
+        ? parseInt(chapterText.match(/\d+/)?.[0] ?? "0", 10)
+        : 0;
+
+      if (chapter && chapterLink.attr("href")) {
+        chapters.push({
+          number: chapter,
+          link: chapterLink.attr("href") || "",
+          timeAgo: timeAgo || "",
+        });
+      }
+    });
+
+    // Add to results if we have both title and link and at least one chapter
+    if (title && link && chapters.length > 0) {
+      results.push({
+        title,
+        link,
+        chapter: chapters[0].number, // Keep the highest/latest chapter as the main chapter
+        chapters, // Add all chapters as additional information
+      });
+    }
+  });
+  
+  return results;
+}
 // Função específica para parsing do site Slimeread
 export function parseSlimeread(html: string): ScrapedManga[] {
   const $ = cheerio.load(html);
