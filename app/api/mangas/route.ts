@@ -26,7 +26,7 @@ export async function GET() {
         }
         return null;
       } catch (err) {
-        console.log(`Erro ou timeout ao buscar ${endpoint}`);
+        console.log(`Erro ou timeout ao buscar ${endpoint}`, err);
         return null;
       }
     };
@@ -61,7 +61,7 @@ export async function GET() {
 
     // Process mangas in smaller batches
     const MANGA_BATCH_SIZE = 50;
-    let notifications = [];
+    const notifications = [];
     
     for (let i = 0; i < uniqueMangas.length; i += MANGA_BATCH_SIZE) {
       const mangaBatch = uniqueMangas.slice(i, i + MANGA_BATCH_SIZE);

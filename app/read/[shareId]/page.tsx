@@ -4,12 +4,6 @@ import { ArrowDownToLine, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter,useParams } from "next/navigation";
 
-interface Props {
-  params: {
-    shareId: string;
-  };
-}
-
 export default function SharedMangaPage() {
   const params = useParams<{ shareId: string }>()
   const shareId = params.shareId;
@@ -57,6 +51,7 @@ export default function SharedMangaPage() {
 
       setStatus("success");
     } catch (error) {
+      console.log(error)
       setStatus("error");
     }
   };

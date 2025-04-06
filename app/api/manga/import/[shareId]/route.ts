@@ -41,7 +41,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
 }
 
-export async function copyImageToMinio(originalImageUrl: string, fileName: string): Promise<string | null> {
+async function copyImageToMinio(originalImageUrl: string, fileName: string): Promise<string | null> {
   try {
     const response = await fetch(originalImageUrl);
     if (!response.ok) {
@@ -72,8 +72,8 @@ export async function copyImageToMinio(originalImageUrl: string, fileName: strin
     });
 
     await s3.send(uploadCommand);
-
-    return `https://minio.werioliveira.shop/wslibrary/${key}`;
+    
+    return `${process.env.MINIO_ENDPOINT}/wslibrary/${key}`;
   } catch (err) {
     console.error("Falha ao copiar imagem para seu MinIO:", err);
     return null;

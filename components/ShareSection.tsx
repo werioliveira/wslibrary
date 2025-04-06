@@ -1,7 +1,13 @@
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { Button } from "@/components/ui/button";
 
-export default function ShareSection({ manga, setManga }: { manga: any, setManga: Function }) {
+export default function ShareSection({
+  manga,
+  setManga,
+}: {
+  manga: any;
+  setManga: Dispatch<SetStateAction<any>>;
+}) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {

@@ -35,6 +35,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     return NextResponse.json({ shareId: updated.shareId });
   } catch (error) {
+    console.log(error)
     return NextResponse.json({ error: 'Failed to share manga' }, { status: 500 });
   }
 }
