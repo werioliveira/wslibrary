@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  // ✅ Obtém o ID do usuário autenticado
+  // // ✅ Obtém o ID do usuário autenticado
   const userId = await getUserId(request);
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Manga not found' }, { status: 404 });
     }
 
-    // ✅ Verifica se o mangá pertence ao usuário autenticado
+    // // ✅ Verifica se o mangá pertence ao usuário autenticado
     if (manga.userId !== userId) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       if (!manga) {
         return NextResponse.json({ error: "Manga not found" }, { status: 404 });
       }
-        // Verifica se o mangá pertence ao usuário autenticado
+        // // Verifica se o mangá pertence ao usuário autenticado
         if (manga.userId !== userId) {
           return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
@@ -128,7 +128,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const { id } = await params;
-    const { hasNewChapter } = await request.json();
+    const { hasNewChapter, chapter, status } = await request.json();
 
     try {
       const manga = await db.manga.findUnique({
@@ -146,7 +146,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   
       const updatedManga = await db.manga.update({
         where: { id },
-        data: { hasNewChapter: hasNewChapter },
+        data: { hasNewChapter: hasNewChapter, chapter: chapter, status: status },
       });
   
       return NextResponse.json(updatedManga);
