@@ -76,7 +76,7 @@ export default function Home() {
 
       {/* Botão Flutuante de Download */}
       <Link
-        href={process.env.NEXT_PUBLIC_BASE_URL + "/wslibrary.apk"} // Substitua pelo link do seu app
+        href='https://minio.werioliveira.shop/wslibrary/app/wslibrary.apk' // Substitua pelo link do seu app
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-8 right-20 bg-green-500 text-white p-3 rounded-full shadow-lg hover:bg-blue-600 transition-colors"
