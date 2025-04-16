@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { fetchMangasFromSite, parseSlimeread } from "@/lib/fetchManga";
+import { fetchMangasFromHteca, parseSlimeread } from "@/lib/fetchManga";
 
 export async function GET() {
   try {
@@ -10,7 +10,7 @@ export async function GET() {
 
     // Realizar o scraping diretamente
     const mangas = (await Promise.all(
-      urls.map((url) => fetchMangasFromSite(url, parseSlimeread, "Slime Read"))
+      urls.map((url) => fetchMangasFromHteca(url, parseSlimeread, "Slime Read"))
     )).flat();
     return NextResponse.json({ mangas }, { status: 200 });
   } catch (error) {

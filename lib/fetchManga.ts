@@ -218,24 +218,30 @@ export function parseMangaonline(html: string): ScrapedManga[] {
 export function parseSlimeread(html: string): ScrapedManga[] {
   const $ = cheerio.load(html);
   const results: ScrapedManga[] = [];
-  
-  // Select manga items
+
   $(".group.relative.tw-vm").each((_, mangaEl) => {
-    // Title and main link
-    const titleEl = $(mangaEl).find("a[aria-label]").first();
+    const el = $(mangaEl);
+
+    // Título e link principal
+    const titleEl = el.find("a[aria-label]").first();
     const title = titleEl.text().trim();
     const link = titleEl.attr("href")?.trim();
 
-    // Extract all chapters
+    // Captura os capítulos dentro do bloco `.tw-ufa`
+    const chapterEls = el.find(".tw-ufa a.tw-wt");
     const chapters: MangaChapter[] = [];
-    $(mangaEl).find(".tw-ufa .tw-wt").each((_, chapterEl) => {
-      const chapterText = $(chapterEl).text().trim();
-      const chapterLink = $(chapterEl).attr("href")?.trim();
-      const timeAgo = $(mangaEl).find(".tw-paa").text()?.trim() || "";
-      
+
+    chapterEls.each((_, chapterEl) => {
+      const ch = $(chapterEl);
+      const chapterText = ch.text().trim();
+      const chapterLink = ch.attr("href")?.trim();
+
       const chapter = chapterText 
         ? parseInt(chapterText.match(/\d+/)?.[0] ?? "0", 10)
         : 0;
+
+      // Data do capítulo (busca no parágrafo com classe .tw-paa mais próximo)
+      const timeAgo = el.find(".tw-paa").text().trim();
 
       if (chapter && chapterLink) {
         chapters.push({
