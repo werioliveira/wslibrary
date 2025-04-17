@@ -615,16 +615,20 @@ async function sendPushNotificationsBatch(messages: any[], experienceId: string)
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
   const maxAttempts = 3;
 
-  console.log(`Preparando para enviar ${messages.length} notificações.`);
+  // Filtra mensagens que possuem experienceId incorreto (ou ausente)
+  const filteredMessages = messages.filter(msg => {
+    return !msg._experienceId || msg._experienceId === experienceId;
+  }).map(msg => ({
+    ...msg,
+    _experienceId: experienceId,
+  }));
 
-  for (let i = 0; i < messages.length; i += batchSize) {
-    // Inserir experienceId em cada notificação do batch
-    const batch = messages.slice(i, i + batchSize).map(msg => ({
-      ...msg,
-      _experienceId: experienceId
-    }));
+  console.log(`Filtradas ${filteredMessages.length} notificações para o experienceId '${experienceId}'.`);
 
+  for (let i = 0; i < filteredMessages.length; i += batchSize) {
+    const batch = filteredMessages.slice(i, i + batchSize);
     let attempts = 0;
+
     console.log(`Enviando batch de notificações [${i} - ${i + batch.length}]`);
 
     while (attempts < maxAttempts) {
@@ -653,7 +657,7 @@ async function sendPushNotificationsBatch(messages: any[], experienceId: string)
         console.log('Notificações enviadas com sucesso!');
         console.dir(responseData, { depth: null });
 
-        break; // Envio bem-sucedido
+        break; // Envio bem-sucedido, sair do loop
       } catch (error) {
         console.error(`Tentativa ${attempts + 1} falhou ao enviar as notificações:`, error);
         attempts++;
@@ -669,7 +673,6 @@ async function sendPushNotificationsBatch(messages: any[], experienceId: string)
 
   console.log("Processo de envio de notificações finalizado.");
 }
-
 
 export async function processMangas(scrapedMangas: ScrapedManga[]) {
   const fuse = new Fuse(scrapedMangas, {
