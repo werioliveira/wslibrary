@@ -610,7 +610,7 @@ export function parserNewSussytoons(html: string): ScrapedManga[] {
 }
 
 // Função para enviar notificação push via Expo
-async function sendPushNotificationsBatch(messages: any[]) {
+async function sendPushNotificationsBatch(messages: any[], experienceId: string) {
   const batchSize = 100; // Expo permite até 100 notificações por requisição
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
   const maxAttempts = 3;
@@ -618,9 +618,13 @@ async function sendPushNotificationsBatch(messages: any[]) {
   console.log(`Preparando para enviar ${messages.length} notificações.`);
 
   for (let i = 0; i < messages.length; i += batchSize) {
-    const batch = messages.slice(i, i + batchSize);
-    let attempts = 0;
+    // Inserir experienceId em cada notificação do batch
+    const batch = messages.slice(i, i + batchSize).map(msg => ({
+      ...msg,
+      _experienceId: experienceId
+    }));
 
+    let attempts = 0;
     console.log(`Enviando batch de notificações [${i} - ${i + batch.length}]`);
 
     while (attempts < maxAttempts) {
@@ -649,7 +653,7 @@ async function sendPushNotificationsBatch(messages: any[]) {
         console.log('Notificações enviadas com sucesso!');
         console.dir(responseData, { depth: null });
 
-        break; // Envio bem-sucedido, sair do loop
+        break; // Envio bem-sucedido
       } catch (error) {
         console.error(`Tentativa ${attempts + 1} falhou ao enviar as notificações:`, error);
         attempts++;
@@ -787,7 +791,7 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
   if(process.env.NODE_ENV != "development"){
     await Promise.all(discordNotifications);
     if (pushMessages.length > 0) {
-      await sendPushNotificationsBatch(pushMessages);
+      await sendPushNotificationsBatch(pushMessages, '@werioliveira/mangaverse');
     }
   }
 
