@@ -15,7 +15,10 @@ export async function GET() {
 
     return NextResponse.json({ mangas }, { status: 200 });
   } catch (error) {
-    console.error("Erro no scraping Ler Mangás:", error);
-    return NextResponse.json({ error: "Erro ao buscar dados." }, { status: 500 });
+    return NextResponse.json(
+      { error: `Erro ao buscar dados de Ler Mangás. Detalhe: ${error instanceof Error ? error.message : 'Erro desconhecido'}` },
+      { status: 500 }
+    );  
+
   }
 }

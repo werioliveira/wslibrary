@@ -15,7 +15,10 @@ export async function GET() {
 
     return NextResponse.json({ mangas }, { status: 200 });
   } catch (error) {
-    console.error("Erro no scraping Remangas:", error);
-    return NextResponse.json({ error: "Erro ao buscar dados." }, { status: 500 });
+    // Adicionando o erro no retorno JSON, mas de forma mais amigável
+    return NextResponse.json(
+      { error: `Erro ao buscar dados de Remangas. Detalhe: ${error instanceof Error ? error.message : 'Erro desconhecido'}` },
+      { status: 500 }
+    );
   }
 }

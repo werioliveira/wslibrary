@@ -14,7 +14,10 @@ export async function GET() {
     )).flat();
     return NextResponse.json({ mangas }, { status: 200 });
   } catch (error) {
-    console.error("Erro no scraping Slime Read:", error);
-    return NextResponse.json({ error: "Erro ao buscar dados." }, { status: 500 });
+
+    return NextResponse.json(
+      { error: `Erro ao buscar dados de Slime Read. Detalhe: ${error instanceof Error ? error.message : 'Erro desconhecido'}` },
+      { status: 500 }
+    );    
   }
 }

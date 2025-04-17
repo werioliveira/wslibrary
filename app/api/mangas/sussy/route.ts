@@ -37,37 +37,59 @@ export async function GET() {
     const response = await fetch(apiUrl, {
       headers: {
         'Content-Type': 'application/json',
-        'Scan-id': '1',
+        'Scan-id': '1', // Se necessário
       },
     });
 
     const data = await response.json();
+// Transformar a resposta da API no formato desejado
     const baseUrl = 'https://www.sussytoons.wtf/';
     const formattedResponse = {
       mangas: data.resultados.map((obra: any) => {
-        // Create chapters array from ultimos_capitulos
-        const chapters = obra.ultimos_capitulos.map((cap: any) => ({
-          number: cap.cap_numero,
-          link: `${baseUrl}capitulo/${cap.cap_id}/`,
-          timeAgo: new Date(cap.cap_lancado_em).toLocaleString(),
-        }));
-
-        // Sort chapters by number in descending order
-        const sortedChapters = chapters.sort((a: any, b: any) => b.number - a.number);
-
+        const latestChapter = obra.ultimos_capitulos[0]; // Pega o último capítulo
+       //const link = createLink(obra);
         return {
           title: obra.obr_nome,
+ //         link: link,
           link: `${baseUrl}obra/${obra.obr_id}/${obra.obr_slug}/`,
-          chapter: sortedChapters[0].number,
-          chapters: sortedChapters,
+          chapter: latestChapter.cap_numero,
           source: "New Sussy",
         };
       }),
     };
-
     return NextResponse.json(formattedResponse, { status: 200 });
   } catch (error) {
-    console.log('Error:', error);
-    return NextResponse.json({ error: 'Erro ao acessar a API' }, { status: 500 });
+    return NextResponse.json(
+      { error: `Erro ao buscar dados de New Sussy. Detalhe: ${error instanceof Error ? error.message : 'Erro desconhecido'}` },
+      { status: 500 }
+    );  
+
   }
+  /*
+  
+  try {
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'], // Necessário em ambientes como Vercel ou Docker
+    });
+
+    const page = await browser.newPage();
+    await page.goto('https://new.sussytoons.site/', { waitUntil: 'networkidle2' });
+
+    // Aguarde até que um seletor específico esteja disponível, caso necessário
+    await page.waitForSelector('.css-r8mu0h',{ timeout: 30000 }); // Substitua pelo seletor relevante
+
+    // Extraia o HTML renderizado
+    const content = await page.content();
+
+    await browser.close();
+    // Realizar o scraping diretamente
+    const mangas = parserNewSussytoons(content)
+    return NextResponse.json({ mangas }, { status: 200 });
+  } catch (error) {
+    console.error('Scraping error:', error);
+    return NextResponse.json({ error:'Scraping error:' }, { status: 500 });
+
+  }
+  */
 }
