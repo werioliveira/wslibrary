@@ -610,32 +610,17 @@ export function parserNewSussytoons(html: string): ScrapedManga[] {
 }
 
 // Função para enviar notificação push via Expo
-async function sendPushNotificationsBatch(messages: any[], experienceId: string) {
+async function sendPushNotificationsBatch(messages: any[]) {
   const batchSize = 100; // Expo permite até 100 notificações por requisição
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
   const maxAttempts = 3;
 
-  // Filtra mensagens que possuem experienceId incorreto (ou ausente)
-  const filteredMessages = messages.filter(msg => {
-    return !msg._experienceId || msg._experienceId === experienceId;
-  }).map(msg => ({
-    ...msg,
-    _experienceId: experienceId,
-  }));
-
-  console.log(`Filtradas ${filteredMessages.length} notificações para o experienceId '${experienceId}'.`);
-
-  for (let i = 0; i < filteredMessages.length; i += batchSize) {
-    const batch = filteredMessages.slice(i, i + batchSize);
+  for (let i = 0; i < messages.length; i += batchSize) {
+    const batch = messages.slice(i, i + batchSize);
     let attempts = 0;
-
-    console.log(`Enviando batch de notificações [${i} - ${i + batch.length}]`);
 
     while (attempts < maxAttempts) {
       try {
-        console.log(`Tentativa ${attempts + 1} de envio...`);
-        console.log("Conteúdo do batch:", JSON.stringify(batch, null, 2));
-
         const response = await fetch('https://exp.host/--/api/v2/push/send', {
           method: 'POST',
           headers: {
@@ -646,32 +631,21 @@ async function sendPushNotificationsBatch(messages: any[], experienceId: string)
           body: JSON.stringify(batch),
         });
 
-        const responseData = await response.json();
-
         if (!response.ok) {
-          console.error('Erro ao enviar notificação - status HTTP:', response.status);
-          console.error('Resposta da API da Expo:', responseData);
-          throw new Error(`Erro ao enviar notificação: ${responseData.message || response.statusText}`);
+          const errorResponse = await response.json();
+          console.error('Erro ao enviar notificação:', errorResponse);
+          throw new Error(`Erro ao enviar notificação: ${errorResponse.message || response.statusText}`);
         }
 
-        console.log('Notificações enviadas com sucesso!');
-        console.dir(responseData, { depth: null });
-
-        break; // Envio bem-sucedido, sair do loop
+        console.log('Notificações enviadas com sucesso:', await response.json());
+        break;
       } catch (error) {
         console.error(`Tentativa ${attempts + 1} falhou ao enviar as notificações:`, error);
         attempts++;
-        if (attempts < maxAttempts) {
-          console.log('Aguardando 5 segundos antes da próxima tentativa...');
-          await delay(5000);
-        } else {
-          console.error('Máximo de tentativas atingido. Batch falhou completamente.');
-        }
+        if (attempts < maxAttempts) await delay(5000);
       }
     }
   }
-
-  console.log("Processo de envio de notificações finalizado.");
 }
 
 export async function processMangas(scrapedMangas: ScrapedManga[]) {
@@ -794,7 +768,7 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
   if(process.env.NODE_ENV != "development"){
     await Promise.all(discordNotifications);
     if (pushMessages.length > 0) {
-      await sendPushNotificationsBatch(pushMessages, '@werioliveira/mangaverse');
+      await sendPushNotificationsBatch(pushMessages);
     }
   }
 
