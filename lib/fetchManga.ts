@@ -738,7 +738,7 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
             userId: manga.userId,
           });
           if(process.env.NODE_ENV != "development"){
-            if (manga.user.discordId && manga.status === "Lendo") {
+            if (manga.user.discordId && (manga.status === "Lendo" || manga.notificationsEnabled)) {
               const discordNotification = notifyUserAboutNewChapter(
                 process.env.DISCORD_CHANNEL_ID ?? "1321316349234118716",
                 manga.user.discordId,
@@ -750,7 +750,7 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
             }
           }
 
-          if (manga.user.pushToken && manga.status === "Lendo") {
+          if (manga.user.pushToken && (manga.status === "Lendo" || manga.notificationsEnabled)) {
             pushMessages.push({
               to: manga.user.pushToken,
               sound: 'default',

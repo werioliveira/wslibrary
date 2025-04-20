@@ -47,6 +47,7 @@ model Manga {
   linkToWebsite String
   status    MangaStatus? @default(Lendo)
   userId    String   @db.ObjectId
+  notificationsEnabled  Boolean      @default(false)
   hasNewChapter   Boolean      @default(false) // Indica se há novos capítulos
   newChapter    Json?     // Altera para Json para armazenar o número do capítulo e a origem
   shareId   String?  // sem o @unique

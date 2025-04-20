@@ -55,7 +55,33 @@ export default {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
-  		}
+  		},
+		keyframes: {
+			'bounce-once': {
+			'0%, 100%': { transform: 'translateY(0)' },
+			'50%': { transform: 'translateY(-4px)' },
+			},
+			bell: {
+			'0%, 100%': { transform: 'rotate(0deg)' },
+			'25%': { transform: 'rotate(15deg)' },
+			'75%': { transform: 'rotate(-15deg)' },
+			},
+			'bell-shake-once': {
+				'0%': { transform: 'rotate(0deg)' },
+				'10%': { transform: 'rotate(-15deg)' },
+				'20%': { transform: 'rotate(15deg)' },
+				'30%': { transform: 'rotate(-10deg)' },
+				'40%': { transform: 'rotate(10deg)' },
+				'50%': { transform: 'rotate(-5deg)' },
+				'60%': { transform: 'rotate(5deg)' },
+				'70%': { transform: 'rotate(0deg)' },
+				'100%': { transform: 'rotate(0deg)' }, // mantém parado até reiniciar
+			  }
+		},
+		animation: {
+			'bounce-once': 'bounce-once 0.4s ease-in-out',
+			'bell-shake-once': 'bell-shake-once 1.5s ease-in-out infinite',
+		},
   	}
   },
   plugins: [require("tailwindcss-animate")],

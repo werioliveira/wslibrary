@@ -128,8 +128,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const { id } = await params;
-    const { hasNewChapter, chapter, status } = await request.json();
-
+    const { hasNewChapter, chapter, status, notificationsEnabled } = await request.json();
+  
     try {
       const manga = await db.manga.findUnique({
         where: { id },
@@ -139,18 +139,22 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         return NextResponse.json({ error: "Manga not found" }, { status: 404 });
       }
   
-      // Verifica se o mangá pertence ao usuário autenticado
       if (manga.userId !== userId) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
   
       const updatedManga = await db.manga.update({
         where: { id },
-        data: { hasNewChapter: hasNewChapter, chapter: chapter, status: status },
+        data: {
+          hasNewChapter,
+          chapter,
+          status,
+          notificationsEnabled, // ✅ aqui atualiza a notificação
+        },
       });
   
       return NextResponse.json(updatedManga);
     } catch (error) {
-      return NextResponse.json({ error: "Internal Server Error"+error }, { status: 500 });
+      return NextResponse.json({ error: "Internal Server Error" + error }, { status: 500 });
     }
   }
