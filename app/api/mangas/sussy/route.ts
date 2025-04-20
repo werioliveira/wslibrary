@@ -46,13 +46,22 @@ export async function GET() {
     const baseUrl = 'https://www.sussytoons.wtf/';
     const formattedResponse = {
       mangas: data.resultados.map((obra: any) => {
-        const latestChapter = obra.ultimos_capitulos[0]; // Pega o último capítulo
-       //const link = createLink(obra);
+        // Create chapters array from ultimos_capitulos
+        const chapters = obra.ultimos_capitulos.map((cap: any) => ({
+          number: cap.cap_numero,
+          link: `${baseUrl}capitulo/${cap.cap_id}/`,
+          timeAgo: new Date(cap.cap_lancado_em).toLocaleString(),
+        }));
+
+        // Sort chapters by number in descending order
+        const sortedChapters = chapters.sort((a: any, b: any) => b.number - a.number);
+
         return {
           title: obra.obr_nome,
- //         link: link,
+
           link: `${baseUrl}obra/${obra.obr_id}/${obra.obr_slug}/`,
-          chapter: latestChapter.cap_numero,
+          chapter: sortedChapters[0].number,
+          chapters: sortedChapters,
           source: "New Sussy",
         };
       }),
