@@ -26,6 +26,7 @@ interface MangaCardProps {
   id: string;
   hasNewChapter: boolean;
   newChapter: NewChapter;
+  status: string;
   notificationsEnabled?: boolean; // <- vem do backend
 }
 
@@ -38,6 +39,7 @@ export function MangaCard({
   website,
   hasNewChapter,
   newChapter,
+  status,
   notificationsEnabled: initialNotificationsEnabled = false,
 }: MangaCardProps) {
   const [notificationsEnabled, setNotificationsEnabled] = useState(initialNotificationsEnabled);
@@ -77,29 +79,30 @@ export function MangaCard({
               <span className="text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">New Chapter</span>
             </div>
           )}
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  aria-label={notificationsEnabled ? "Desativar notificações" : "Ativar notificações"}
-                  onClick={toggleNotifications}
-                  className="absolute top-2 left-2 z-10 p-2 rounded-full bg-white shadow-md transition-all duration-300 hover:scale-105"
-                >
-                <div className={notificationsEnabled ? "animate-bell-shake-once" : ""}>
-                  {notificationsEnabled ? (
-                    <Bell className="w-5 h-5 fill-yellow-400 text-yellow-500" />
-                  ) : (
-                    <BellOff className="w-5 h-5 fill-red-400 text-red-600" />
-                  )}
-                </div>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{notificationsEnabled ? "Notificações ativadas" : "Ativar notificações"}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          {status !== "Lendo" && 
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    aria-label={notificationsEnabled ? "Desativar notificações" : "Ativar notificações"}
+                    onClick={toggleNotifications}
+                    className="absolute top-2 left-2 z-10 p-2 rounded-full bg-white shadow-md transition-all duration-300 hover:scale-105"
+                  >
+                  <div className={notificationsEnabled ? "animate-bell-shake-once" : ""}>
+                    {notificationsEnabled ? (
+                      <Bell className="w-5 h-5 fill-yellow-400 text-yellow-500" />
+                    ) : (
+                      <BellOff className="w-5 h-5 fill-red-400 text-red-600" />
+                    )}
+                  </div>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{notificationsEnabled ? "Notificações ativadas" : "Ativar notificações"}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          }
 
         </div>
 

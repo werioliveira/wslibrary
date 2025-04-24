@@ -22,7 +22,8 @@ interface MangaCardProps {
   id: string;
   hasNewChapter: boolean;
   newChapter: NewChapter,
-
+  status: string;
+  notificationsEnabled?: boolean; // <- vem do backend
 }
 export function MangaContainer({ status, page, searchName }: { status: string; page: number; searchName: string }) {
 
