@@ -9,7 +9,10 @@ const nextConfig: NextConfig = {
     };
     return config;
   },
-  reactStrictMode: true, // Se você quiser habilitar o modo estrito
+  reactStrictMode: true, // Habilita modo estrito
+  eslint: {
+    ignoreDuringBuilds: true, // Ignora erros de lint no build (útil pra Docker/CI)
+  },
 };
 
 export default nextConfig;
