@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { fetchMangasWithPuppeteer, parseEgotoons } from "@/lib/fetchManga";
+import { fetchMangasFromSite, parseEgotoons } from "@/lib/fetchManga";
 
 export async function GET() {
   try {
@@ -10,7 +10,7 @@ export async function GET() {
 
     // Realizar o scraping diretamente
     const mangas = (await Promise.all(
-      urls.map((url) => fetchMangasWithPuppeteer(url, parseEgotoons, "Egotoons",".manga-list .manga-card" ))
+      urls.map((url) => fetchMangasFromSite(url, parseEgotoons, "Egotoons" ))
     )).flat();
     return NextResponse.json({ mangas }, { status: 200 });
   } catch (error) {
