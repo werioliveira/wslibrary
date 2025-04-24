@@ -3,7 +3,7 @@ import axios from "axios";
 import * as cheerio from "cheerio";
 import Fuse from "fuse.js"; // Importando o Fuse.js
 import { notifyUserAboutNewChapter } from "./mangaNotifications";
-
+import puppeteer from 'puppeteer';
 
 interface MangaChapter {
   number: number;
@@ -49,6 +49,45 @@ export async function fetchMangasFromSite(url: string, parseFunction: (data: str
     ...manga,
     source,
   }));
+}
+export async function fetchMangasWithPuppeteer(
+  url: string,
+  parseFunction: (html: string) => ScrapedManga[],
+  source: string,
+  waitSelector?: string
+): Promise<ScrapedManga[]> {
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
+
+  try {
+    const page = await browser.newPage();
+
+    await page.setUserAgent(
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
+      "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    );
+
+    await page.goto(url, {
+      waitUntil: "networkidle2",
+      timeout: 60000,
+    });
+
+    if (waitSelector) {
+      await page.waitForSelector(waitSelector, { timeout: 15000 });
+    }
+
+    const html = await page.content();
+    const mangas = parseFunction(html);
+
+    return mangas.map(manga => ({
+      ...manga,
+      source,
+    }));
+  } finally {
+    await browser.close();
+  }
 }
 // Função genérica para buscar dados de um site
 export async function fetchMangasFromHteca(url: string, parseFunction: (data: string) => ScrapedManga[], source: string): Promise<ScrapedManga[]> {
@@ -264,7 +303,6 @@ export function parseSlimeread(html: string): ScrapedManga[] {
 
   return results;
 }
-
 // Função específica para parsing do site Egotoons
 export function parseEgotoons(html: string): ScrapedManga[] {
   const $ = cheerio.load(html);
