@@ -1,24 +1,4 @@
-[phases.setup]
-nixPkgs = [
-  "chromium",
-  "nss",
-  "atk",
-  "cups",
-  "libdrm",
-  "libxkbcommon",
-  "mesa",
-  "pango",
-  "glib",
-  "gdk-pixbuf",
-  "libxcomposite",
-  "libxdamage",
-  "libxrandr",
-  "libxcb",
-  "libx11",
-  "libxext",
-  "libxfixes",
-  "gtk3"
-]
-
 [phases.install]
-cmds = ["NODE_ENV=development npm install"]
+cmds = [
+  "npm install --include=dev"
+]
