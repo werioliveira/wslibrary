@@ -1,4 +1,0 @@
-[phases.install]
-cmds = [
-  "NODE_ENV=development npm install"
-]
