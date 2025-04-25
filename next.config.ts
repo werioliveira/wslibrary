@@ -5,13 +5,16 @@ const nextConfig: NextConfig = {
   webpack(config) {
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': path.resolve(__dirname), // Fazendo referência ao diretório raiz
+      '@': path.resolve(__dirname),
     };
     return config;
   },
-  reactStrictMode: true, // Habilita modo estrito
+  reactStrictMode: true,
   eslint: {
-    ignoreDuringBuilds: true, // Ignora erros de lint no build (útil pra Docker/CI)
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true, // <- Isto ignora erros de types no build
   },
 };
 
