@@ -42,10 +42,10 @@ export async function GET() {
       `${baseUrl}/api/mangas/sussy`,
       `${baseUrl}/api/mangas/imperio`,
       `${baseUrl}/api/mangas/lermangas`,
-      `${baseUrl}/api/mangas/slimer`,	
+      //`${baseUrl}/api/mangas/slimer`,	 offline
       `${baseUrl}/api/mangas/hteca`,
-      `${baseUrl}/api/mangas/lunar`,
-      `${baseUrl}/api/mangas/ego`,
+      //`${baseUrl}/api/mangas/lunar`, offline
+      `${baseUrl}/api/mangas/ego`, // muito lento e nao faz scrap
       `${baseUrl}/api/mangas/yushuke`,
       `${baseUrl}/api/mangas/mangaLivre`,
       `${baseUrl}/api/mangas/remangas`,
@@ -53,6 +53,7 @@ export async function GET() {
       `${baseUrl}/api/mangas/readMangas`,
       `${baseUrl}/api/mangas/yomu`,
       `${baseUrl}/api/mangas/mangaonline`,
+      `${baseUrl}/api/mangas/ape`,
     ];
 
     // Process all endpoints simultaneously

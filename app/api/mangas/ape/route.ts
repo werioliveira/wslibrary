@@ -1,16 +1,16 @@
 import { NextResponse } from "next/server";
-import { fetchMangasWithPuppeteer, parseEgotoons } from "@/lib/fetchManga";
+import { fetchMangasFromSite, parseApeComics } from "@/lib/fetchManga";
 
 export async function GET() {
   try {
     // URLs para scraping
     const urls = [
-      `https://egotoons.com/`,
+      `https://apecomics.net/`,
     ];
 
     // Realizar o scraping diretamente
     const mangas = (await Promise.all(
-      urls.map((url) => fetchMangasWithPuppeteer(url, parseEgotoons, "Egotoons" ))
+      urls.map((url) => fetchMangasFromSite(url, parseApeComics, "Ape Comics" ))
     )).flat();
     return NextResponse.json({ mangas }, { status: 200 });
   } catch (error) {

@@ -883,3 +883,43 @@ export function parseYomuComics(html: string): ScrapedManga[] {
 
   return results;
 }
+export function parseApeComics(html: string): ScrapedManga[] {
+  const $ = cheerio.load(html);
+  const mangas: ScrapedManga[] = [];
+
+  $(".manga-box").each((_, el) => {
+    const container = $(el);
+
+    const titleElement = container.find(".manga-title a").first();
+    const title = titleElement.text().trim();
+    const link = titleElement.attr("href")?.trim() ?? "";
+
+    const chapters: MangaChapter[] = [];
+
+    container.find(".manga-chapters .chapter-link").each((_, chapterEl) => {
+      const chapterLink = $(chapterEl).attr("href")?.trim() ?? "";
+      const chapterNumberStr = $(chapterEl).find(".chapter-number").text().trim().replace("Capítulo", "").trim();
+      const timeAgo = $(chapterEl).find(".chapter-time").text().trim();
+
+      const chapterNumber = parseFloat(chapterNumberStr);
+      if (!isNaN(chapterNumber)) {
+        chapters.push({
+          number: chapterNumber,
+          link: chapterLink,
+          timeAgo,
+        });
+      }
+    });
+
+    const latestChapter = chapters[0]?.number ?? 0;
+
+    mangas.push({
+      title,
+      link,
+      chapter: latestChapter,
+      chapters,
+    });
+  });
+
+  return mangas;
+}
