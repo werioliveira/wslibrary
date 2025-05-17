@@ -4,22 +4,32 @@ import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { AddMangaButton } from "@/components/add-manga-button";
 import { MangaContainer } from "@/components/manga-container";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Download } from "lucide-react"; // Importando ícone de download
+import { Download } from "lucide-react";
+import { useDebounce } from "use-debounce";
 
 export default function Home() {
   const { data: session } = useSession();
   const [status, setStatus] = useState("Lendo");
   const [page] = useState(1);
+  const [inputValue, setInputValue] = useState("");
   const [searchName, setSearchName] = useState("");
+
+  // Aplica debounce de 300ms no input
+  const [debouncedValue] = useDebounce(inputValue, 300);
+
+  // Atualiza o estado searchName apenas após o debounce
+  useEffect(() => {
+    setSearchName(debouncedValue);
+  }, [debouncedValue]);
 
   const handleStatusChange = (newStatus: string) => {
     setStatus(newStatus);
   };
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchName(event.target.value);
+    setInputValue(event.target.value);
   };
 
   return (
@@ -62,11 +72,12 @@ export default function Home() {
             <input
               type="text"
               placeholder="Buscar por nome..."
-              value={searchName}
+              value={inputValue}
               onChange={handleSearch}
               className="border rounded px-3 py-2 w-full text-black"
             />
           </div>
+
           <MangaContainer status={status} page={page} searchName={searchName} />
           <AddMangaButton />
         </>
@@ -76,12 +87,12 @@ export default function Home() {
 
       {/* Botão Flutuante de Download */}
       <Link
-        href='https://minio.werioliveira.shop/wslibrary/app/wslibrary.apk' // Substitua pelo link do seu app
+        href="https://minio.werioliveira.shop/wslibrary/app/wslibrary.apk"
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-8 right-20 bg-green-500 text-white p-3 rounded-full shadow-lg hover:bg-blue-600 transition-colors"
       >
-        <Download className="h-6 w-6" /> {/* Ícone de download */}
+        <Download className="h-6 w-6" />
       </Link>
     </main>
   );
