@@ -782,7 +782,7 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
               const notificationPromise = limit(() =>
                 notifyUserAboutNewChapter(
                   process.env.DISCORD_CHANNEL_ID ?? "1321316349234118716",
-                  manga.userId,
+                  manga.user.discordId as string,
                   manga.name,
                   matchingManga.chapter,
                   linkToUse
