@@ -38,6 +38,7 @@
     "next": ">=15.2.4",
     "next-auth": "^5.0.0-beta.25",
     "node-cron": "^3.0.3",
+    "p-limit": "^6.2.0",
     "puppeteer": "^24.6.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

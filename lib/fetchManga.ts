@@ -4,7 +4,7 @@ import * as cheerio from "cheerio";
 import Fuse from "fuse.js"; // Importando o Fuse.js
 import { notifyUserAboutNewChapter } from "./mangaNotifications";
 import puppeteer from 'puppeteer';
-
+import pLimit from "p-limit";
 interface MangaChapter {
   number: number;
   link: string;
@@ -702,6 +702,7 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
 
   const pushMessages: any[] = [];
   const discordNotifications: Promise<any>[] = [];
+  const limit = pLimit(3); // Limita notificações simultâneas do Discord
   const updatedMangas: {
     id: string;
     name: string;
@@ -777,14 +778,17 @@ export async function processMangas(scrapedMangas: ScrapedManga[]) {
           });
           if(process.env.NODE_ENV != "development"){
             if (manga.user.discordId && (manga.status === "Lendo" || manga.notificationsEnabled)) {
-              const discordNotification = notifyUserAboutNewChapter(
-                process.env.DISCORD_CHANNEL_ID ?? "1321316349234118716",
-                manga.user.discordId,
-                manga.name,
-                matchingManga.chapter,
-                matchingManga.link,
+              
+              const notificationPromise = limit(() =>
+                notifyUserAboutNewChapter(
+                  process.env.DISCORD_CHANNEL_ID ?? "1321316349234118716",
+                  manga.userId,
+                  manga.name,
+                  matchingManga.chapter,
+                  linkToUse
+                )
               );
-              discordNotifications.push(discordNotification);
+              discordNotifications.push(notificationPromise);
             }
           }
 
